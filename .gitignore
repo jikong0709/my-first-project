@@ -1,0 +1,30 @@
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+logs/
+.tmp.driveupload/
+
+# Dependencies and build outputs
+node_modules/
+dist/
+build/
+coverage/
+
+# Python caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Editor folders
+.idea/
+.vscode/
