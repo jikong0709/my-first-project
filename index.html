@@ -1,0 +1,378 @@
+Exit code: 0
+Wall time: 0.9 seconds
+Output:
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Threads 嚴選美食地圖 | 賣貨便導覽大賣場</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React & ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#10b981', // Emerald 500 for fresh/eco vibe
+                        primaryDark: '#059669',
+                        secondary: '#f59e0b', // Amber 500 for nostalgic/snacks vibe
+                        background: '#f9fafb',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: #f9fafb;
+            color: #1f2937;
+        }
+        /* Custom scrollbar for horizontal lists */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        
+        /* Shimmer effect for image loading placeholder */
+        @keyframes shimmer {
+            0% { background-position: -1000px 0; }
+            100% { background-position: 1000px 0; }
+        }
+        .animate-shimmer {
+            animation: shimmer 2s infinite linear;
+            background: linear-gradient(to right, #eff1f3 4%, #e2e8f0 25%, #eff1f3 36%);
+            background-size: 1000px 100%;
+        }
+        .demo-notice {
+            position: fixed;
+            top: 12px;
+            right: 12px;
+            z-index: 9999;
+            padding: 8px 12px;
+            border: 1px solid #f6c453;
+            border-radius: 999px;
+            background: #fff6d8;
+            color: #8a5a00;
+            box-shadow: 0 5px 18px rgba(138, 90, 0, 0.14);
+            font-size: 12px;
+            font-weight: 800;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-notice">展示頁面尚未完成</div>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        
+        // Mock Data based on the Data Schema in the plan
+        const mockStores = [
+            {
+                id: "S001",
+                store_Name: "阿嬤的灶腳",
+                category: "古早味零食",
+                temperature: "常溫",
+                description: "傳承五十年的手工地瓜酥，酥脆不黏牙，Threads 網友狂推！",
+                myship_Url: "https://myship.7-11.com.tw/general/detail/GM2201010000001",
+                cover_Image: "https://placehold.co/600x400/f59e0b/ffffff?text=阿嬤的手工地瓜酥",
+                status: "已上架",
+                click_Count: 1250
+            },
+            {
+                id: "S002",
+                store_Name: "綠野農莊",
+                category: "減碳生鮮",
+                temperature: "冷藏",
+                description: "產地直銷無毒水耕蔬菜箱，低碳足跡，健康滿分。",
+                myship_Url: "https://myship.7-11.com.tw/general/detail/GM2201010000002",
+                cover_Image: "https://placehold.co/600x400/10b981/ffffff?text=無毒蔬菜箱",
+                status: "已上架",
+                click_Count: 840
+            },
+            {
+                id: "S003",
+                store_Name: "舒肥肌肉工坊",
+                category: "減碳生鮮",
+                temperature: "冷凍",
+                description: "增肌減脂必備！多種口味舒肥雞胸肉，解凍即食超方便。",
+                myship_Url: "https://myship.7-11.com.tw/general/detail/GM2201010000003",
+                cover_Image: "https://placehold.co/600x400/ef4444/ffffff?text=舒肥雞胸肉",
+                status: "已上架",
+                click_Count: 3200
+            },
+            {
+                id: "S004",
+                store_Name: "童年雜貨店",
+                category: "古早味零食",
+                temperature: "常溫",
+                description: "橡皮糖、戒指糖、大豬公，找回小時候的快樂回憶。",
+                myship_Url: "https://myship.7-11.com.tw/general/detail/GM2201010000004",
+                cover_Image: "https://placehold.co/600x400/ec4899/ffffff?text=懷舊零食大集合",
+                status: "已上架",
+                click_Count: 560
+            },
+            {
+                id: "S005",
+                store_Name: "小農蛋蛋",
+                category: "減碳生鮮",
+                temperature: "常溫",
+                description: "放牧人道飼養雞蛋，蛋黃濃郁，友善環境。",
+                myship_Url: "https://myship.7-11.com.tw/general/detail/GM2201010000005",
+                cover_Image: "https://placehold.co/600x400/fbbf24/ffffff?text=放牧雞蛋",
+                status: "已上架",
+                click_Count: 920
+            }
+        ];
+
+        const categories = ["全部", "減碳生鮮", "古早味零食"];
+        const temperatures = ["全部", "常溫", "冷藏", "冷凍"];
+
+        // Simplified SVG icons component
+        const Icon = ({ name, size = 24, className = "" }) => {
+            const icons = {
+                search: <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>,
+                externalLink: <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>,
+                snowflake: <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="12" y1="2" x2="12" y2="22"/><line x1="22" y1="12" x2="2" y2="12"/><line x1="19.07" y1="4.93" x2="4.93" y2="19.07"/><line x1="19.07" y1="19.07" x2="4.93" y2="4.93"/><path d="m16 4-4 4-4-4"/><path d="m16 20-4-4-4 4"/><path d="m4 16 4-4-4-4"/><path d="m20 16-4-4 4-4"/></svg>,
+                sun: <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>,
+                shoppingBag: <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>,
+                flame: <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>,
+                info: <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+            };
+            return icons[name] || null;
+        };
+
+        const StoreCard = ({ store }) => {
+            const [imageLoaded, setImageLoaded] = React.useState(false);
+
+            // Determine temperature styling
+            let tempStyle = "bg-gray-100 text-gray-700";
+            let TempIcon = () => <Icon name="sun" size={12} className="mr-1 inline" />;
+            
+            if (store.temperature === "冷凍" || store.temperature === "冷藏") {
+                tempStyle = "bg-blue-100 text-blue-700";
+                TempIcon = () => <Icon name="snowflake" size={12} className="mr-1 inline" />;
+            }
+
+            // Determine category styling
+            let catStyle = "bg-primary/10 text-primary";
+            if (store.category === "古早味零食") {
+                catStyle = "bg-secondary/10 text-secondary";
+            }
+
+            const handleLinkClick = (e) => {
+                e.preventDefault();
+                // In MVP, we just open the link. In Phase 2+, we'd track clicks here first.
+                // alert(`Track click for ${store.store_Name} and open: ${store.myship_Url}`);
+                window.open(store.myship_Url, '_blank');
+            };
+
+            return (
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col transition-all hover:shadow-md">
+                    {/* Image Area */}
+                    <div className="relative h-48 w-full bg-gray-200">
+                        {!imageLoaded && <div className="absolute inset-0 animate-shimmer"></div>}
+                        <img 
+                            src={store.cover_Image} 
+                            alt={store.store_Name} 
+                            className={`object-cover w-full h-full transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+                            onLoad={() => setImageLoaded(true)}
+                        />
+                        {/* Hot Badge */}
+                        {store.click_Count > 1000 && (
+                            <div className="absolute top-3 right-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full flex items-center shadow-sm">
+                                <Icon name="flame" size={12} className="mr-1" />
+                                熱門
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Content Area */}
+                    <div className="p-4 flex-grow flex flex-col">
+                        <div className="flex justify-between items-start mb-2">
+                            <h3 className="font-bold text-lg text-gray-900 leading-tight">{store.store_Name}</h3>
+                            <span className={`text-xs px-2 py-1 rounded-full font-medium whitespace-nowrap ml-2 ${catStyle}`}>
+                                {store.category}
+                            </span>
+                        </div>
+                        
+                        <p className="text-sm text-gray-600 mb-4 flex-grow line-clamp-2">
+                            {store.description}
+                        </p>
+
+                        <div className="flex items-center justify-between mt-auto pt-3 border-t border-gray-50">
+                            <span className={`text-xs px-2 py-1 rounded-full flex items-center ${tempStyle}`}>
+                                <TempIcon />
+                                {store.temperature}
+                            </span>
+                            
+                            <button 
+                                onClick={handleLinkClick}
+                                className="flex items-center bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium py-2 px-4 rounded-xl transition-colors"
+                            >
+                                前往賣場
+                                <Icon name="externalLink" size={16} className="ml-2" />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [searchTerm, setSearchTerm] = React.useState("");
+            const [activeCategory, setActiveCategory] = React.useState("全部");
+            const [activeTemp, setActiveTemp] = React.useState("全部");
+            
+            // Filter logic
+            const filteredStores = mockStores.filter(store => {
+                const matchesSearch = store.store_Name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                                      store.description.toLowerCase().includes(searchTerm.toLowerCase());
+                const matchesCategory = activeCategory === "全部" || store.category === activeCategory;
+                const matchesTemp = activeTemp === "全部" || store.temperature === activeTemp;
+                
+                return matchesSearch && matchesCategory && matchesTemp;
+            });
+
+            return (
+                <div className="min-h-screen pb-20 max-w-md mx-auto bg-white shadow-xl relative">
+                    {/* Header */}
+                    <header className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-gray-100 pt-6 pb-4 px-4">
+                        <div className="flex items-center justify-center mb-4">
+                            <Icon name="shoppingBag" size={28} className="text-primary mr-2" />
+                            <h1 className="text-xl font-black text-gray-900 tracking-tight">Threads 嚴選美食地圖</h1>
+                        </div>
+                        
+                        {/* Search Bar */}
+                        <div className="relative">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <Icon name="search" size={18} className="text-gray-400" />
+                            </div>
+                            <input 
+                                type="text" 
+                                placeholder="搜尋雞胸肉、餅乾、店家名稱..." 
+                                className="w-full pl-10 pr-4 py-3 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-primary focus:bg-white transition-all text-sm"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                        </div>
+                    </header>
+
+                    <main className="p-4 space-y-6">
+                        {/* Banner / Notice */}
+                        <div className="bg-primary/5 rounded-2xl p-4 flex items-start border border-primary/10">
+                            <Icon name="info" size={20} className="text-primary shrink-0 mr-3 mt-0.5" />
+                            <div>
+                                <h4 className="text-sm font-bold text-primaryDark mb-1">脆友專屬賣場大集合！</h4>
+                                <p className="text-xs text-gray-600 leading-relaxed">
+                                    這裡整理了 Threads 上討論度最高的 7-11 賣貨便美食。點擊即可直達賣場，無需註冊即可購買。
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Filters - Categories */}
+                        <div>
+                            <div className="flex items-center justify-between mb-2">
+                                <h2 className="text-sm font-bold text-gray-700">精選分類</h2>
+                            </div>
+                            <div className="flex overflow-x-auto no-scrollbar gap-2 pb-2">
+                                {categories.map(cat => (
+                                    <button
+                                        key={cat}
+                                        onClick={() => setActiveCategory(cat)}
+                                        className={`whitespace-nowrap px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                                            activeCategory === cat 
+                                            ? 'bg-gray-900 text-white shadow-md' 
+                                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                        }`}
+                                    >
+                                        {cat}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Filters - Temperature */}
+                        <div>
+                            <h2 className="text-sm font-bold text-gray-700 mb-2">溫層篩選</h2>
+                            <div className="flex flex-wrap gap-2">
+                                {temperatures.map(temp => (
+                                    <button
+                                        key={temp}
+                                        onClick={() => setActiveTemp(temp)}
+                                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${
+                                            activeTemp === temp 
+                                            ? 'border-gray-900 bg-gray-900 text-white' 
+                                            : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
+                                        }`}
+                                    >
+                                        {temp}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Store List */}
+                        <div>
+                            <div className="flex justify-between items-end mb-4">
+                                <h2 className="text-lg font-bold text-gray-900">探索賣場</h2>
+                                <span className="text-xs text-gray-500">共 {filteredStores.length} 間</span>
+                            </div>
+                            
+                            {filteredStores.length > 0 ? (
+                                <div className="space-y-4">
+                                    {filteredStores.map(store => (
+                                        <StoreCard key={store.id} store={store} />
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center py-12 px-4 border-2 border-dashed border-gray-200 rounded-2xl">
+                                    <Icon name="search" size={48} className="text-gray-300 mx-auto mb-3" />
+                                    <h3 className="text-gray-900 font-medium mb-1">找不到相關賣場</h3>
+                                    <p className="text-sm text-gray-500">請嘗試更換搜尋關鍵字或篩選條件</p>
+                                </div>
+                            )}
+                        </div>
+                    </main>
+
+                    {/* Footer / Disclaimer (Requirement from risk plan) */}
+                    <footer className="mt-8 p-6 bg-gray-50 border-t border-gray-100 text-center">
+                        <p className="text-xs text-gray-400 mb-2">
+                            本站為第三方資訊整理平台，非 7-11 官方網站。
+                        </p>
+                        <p className="text-[10px] text-gray-400 leading-relaxed max-w-xs mx-auto">
+                            免責聲明：本站僅提供賣場資訊與連結整理，實際商品交易、金流配送與退換貨等售後服務，均由各 7-11 賣貨便賣家獨立負責。
+                        </p>
+                        
+                        {/* Placeholder for "Apply as Seller" button (Phase 2 feature preview) */}
+                        <div className="mt-6">
+                             <a href="#" onClick={(e) => { e.preventDefault(); alert('階段二功能：將導向 Google Form 申請表單'); }} className="text-xs font-medium text-primary hover:underline">
+                                我是賣家，我想上架
+                            </a>
+                        </div>
+                    </footer>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
+
