@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#245b37">
+<title>阿財小吃｜手機點餐 V4</title>
+<style>
+:root{--g:#245b37;--g2:#e9f3ec;--bg:#f6f7f4;--card:#fff;--ink:#1d231e;--muted:#717871;--line:#e1e6e1;--bad:#a33232;--warn:#946414}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC","Segoe UI",sans-serif}.wrap{max-width:720px;margin:auto;padding:16px 16px 110px}.top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:4px 2px 16px}.brand{font-size:27px;font-weight:950;letter-spacing:-.5px}.sub{font-size:13px;color:var(--muted);margin-top:2px}.pill{display:inline-flex;align-items:center;padding:6px 10px;border-radius:999px;background:#eef1ee;font-size:12px;font-weight:800;white-space:nowrap}.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:12px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}label{display:block;font-size:13px;font-weight:800;margin-bottom:6px}select,input,textarea{width:100%;border:1px solid var(--line);background:#fff;border-radius:12px;padding:12px;font-size:16px;color:var(--ink)}textarea{resize:vertical}.section-title{font-size:16px;font-weight:950;margin:20px 2px 9px}.cat-title{font-size:14px;font-weight:900;color:var(--g);padding:4px 0 2px}.item{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px;padding:14px 0;border-bottom:1px dashed var(--line)}.item:last-child{border-bottom:0}.item-name{font-size:17px;font-weight:850}.price{font-size:14px;color:var(--muted);margin-top:3px}.qty{display:flex;align-items:center;gap:9px}.qty button{width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:#fff;font-size:22px;color:var(--ink);font-weight:750}.qty b{min-width:20px;text-align:center}.btn{border:0;border-radius:14px;min-height:50px;padding:12px 16px;font-size:16px;font-weight:900;cursor:pointer}.primary{background:var(--g);color:#fff}.soft{background:var(--g2);color:var(--g)}.ghost{background:#fff;color:var(--ink);border:1px solid var(--line)}.pay.active{background:var(--g2);border:2px solid var(--g);color:var(--g)}.pay{border:1px solid var(--line)}.sticky{position:fixed;left:0;right:0;bottom:0;background:rgba(246,247,244,.96);backdrop-filter:blur(12px);border-top:1px solid var(--line);padding:10px 16px max(10px,env(safe-area-inset-bottom));z-index:5}.sticky-in{max-width:688px;margin:auto;background:#fff;border:1px solid var(--line);border-radius:18px;padding:11px 12px;display:flex;align-items:center;justify-content:space-between;gap:12px}.metric{font-size:12px;color:var(--muted)}.total{font-size:28px;font-weight:950}.notice{border-radius:13px;padding:11px 12px;margin-bottom:12px;font-size:14px;background:#fff8e7;border:1px solid #f0dfb7;color:#704f12}.notice.bad{background:#fff0f0;border-color:#efc9c9;color:var(--bad)}.loading{padding:26px 4px;text-align:center;color:var(--muted)}.done{text-align:center;padding:28px 18px}.order-no{font-size:54px;font-weight:950;letter-spacing:1px;margin:8px 0}.done-total{font-size:30px;font-weight:950}.tiny{font-size:12px;color:var(--muted)}button:disabled{opacity:.45;cursor:not-allowed}@media(max-width:420px){.wrap{padding-left:12px;padding-right:12px}.grid2{gap:8px}.brand{font-size:25px}.sticky{padding-left:10px;padding-right:10px}}
+</style>
+</head>
+<body>
+<main id="root" class="wrap">
+  <div class="top"><div><div class="brand">阿財小吃</div><div class="sub">掃碼點餐・送出後請留意取餐號</div></div><span class="pill">測試店</span></div>
+  <div id="notice"></div>
+  <section class="card"><div class="grid2"><div><label for="dining">用餐方式</label><select id="dining"><option value="外帶">外帶</option><option value="內用">內用</option></select></div><div><label for="tableNo">桌號（選填）</label><input id="tableNo" inputmode="numeric" placeholder="例如 3"></div></div></section>
+  <div class="section-title">菜單</div>
+  <section id="menu" class="card"><div class="loading">菜單載入中…</div></section>
+  <section class="card"><label for="note">備註</label><textarea id="note" rows="2" maxlength="120" placeholder="例如：不要辣、醬少一點"></textarea></section>
+  <section class="card"><label>付款方式</label><div class="grid2"><button type="button" class="btn pay active" data-pay="現金">現金</button><button type="button" class="btn pay ghost" data-pay="LINE Pay">LINE Pay</button></div><div class="tiny" style="margin-top:8px">測試版 LINE Pay 先以模擬已付款處理。</div></section>
+</main>
+<div class="sticky"><div class="sticky-in"><div><div class="metric">目前合計</div><div id="total" class="total">$0</div></div><button id="submit" type="button" class="btn primary" disabled>送出訂單</button></div></div>
+<script>
+const REST='https://uuefhkqtslcdkdgeyiof.supabase.co/rest/v1/rpc';
+const KEY='sb_publishable_v_Yzne9MJIj-9sjXYN-NDA_iA_u8wii';
+let menu=[],cart={},pay='現金',sending=false;
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money=n=>'$'+Number(n||0).toLocaleString('zh-TW');
+async function rpc(name,body){
+  const r=await fetch(REST+'/'+name,{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify(body||{})});
+  const text=await r.text(); let data={}; try{data=text?JSON.parse(text):{}}catch{data={message:text||'系統回應格式錯誤'}}
+  if(!r.ok) throw new Error(data.message||data.error||'連線失敗');
+  return data;
+}
+function showNotice(msg,bad=false){$('#notice').innerHTML=msg?'<div class="notice'+(bad?' bad':'')+'">'+esc(msg)+'</div>':'';}
+function totalAmount(){return menu.reduce((sum,x)=>sum+x.price*(cart[x.id]||0),0)}
+function renderMenu(){
+  const cats=[...new Set(menu.map(x=>x.category||'其他'))];
+  $('#menu').innerHTML=cats.map(cat=>'<div class="cat-title">'+esc(cat)+'</div>'+menu.filter(x=>(x.category||'其他')===cat).map(x=>{
+    const q=cart[x.id]||0;
+    return '<div class="item"><div><div class="item-name">'+esc(x.name)+'</div><div class="price">'+money(x.price)+'</div></div><div class="qty"><button type="button" aria-label="減少 '+esc(x.name)+'" data-id="'+x.id+'" data-d="-1">−</button><b>'+q+'</b><button type="button" aria-label="增加 '+esc(x.name)+'" data-id="'+x.id+'" data-d="1">＋</button></div></div>';
+  }).join('')).join('');
+  $('#menu').querySelectorAll('button[data-id]').forEach(b=>b.addEventListener('click',()=>{const id=Number(b.dataset.id),d=Number(b.dataset.d);cart[id]=Math.max(0,(cart[id]||0)+d);renderMenu();}));
+  const t=totalAmount(); $('#total').textContent=money(t); $('#submit').disabled=t<=0||sending;
+}
+async function loadMenu(){
+  try{const d=await rpc('smallshop_get_menu',{});menu=Array.isArray(d.menu)?d.menu:[];if(!menu.length)throw new Error('目前沒有可販售商品');renderMenu();showNotice('');}
+  catch(e){$('#menu').innerHTML='<div class="loading" style="color:#a33232">菜單載入失敗</div>';showNotice('無法取得菜單，請重新整理頁面。',true)}
+}
+document.querySelectorAll('.pay').forEach(b=>b.addEventListener('click',()=>{pay=b.dataset.pay;document.querySelectorAll('.pay').forEach(x=>x.className='btn pay ghost');b.className='btn pay active';}));
+$('#submit').addEventListener('click',async()=>{
+  if(sending)return;
+  const items=menu.filter(x=>(cart[x.id]||0)>0).map(x=>({id:x.id,qty:cart[x.id]}));
+  if(!items.length)return;
+  sending=true;$('#submit').disabled=true;$('#submit').textContent='送出中…';showNotice('');
+  try{
+    const d=await rpc('smallshop_create_order',{p_items:items,p_dining_type:$('#dining').value,p_payment_method:pay,p_note:$('#note').value.trim(),p_table_no:$('#tableNo').value.trim()});
+    const o=d.order;
+    document.querySelector('.sticky').remove();
+    $('#root').innerHTML='<section class="card done" style="margin-top:30px"><div class="sub">訂單已送出</div><div class="order-no">'+esc(o.order_no)+'</div><div class="done-total">'+money(o.total)+'</div><p class="sub">'+esc(o.dining_type)+'・'+esc(o.payment_method)+'</p><p class="notice">請記住取餐號，店家會依序製作。</p><button id="again" type="button" class="btn primary" style="width:100%">繼續點餐</button></section>';
+    $('#again').addEventListener('click',()=>location.reload());
+  }catch(e){sending=false;$('#submit').disabled=false;$('#submit').textContent='送出訂單';showNotice(e.message||'訂單送出失敗',true)}
+});
+loadMenu();
+</script>
+</body>
+</html>
