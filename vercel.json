@@ -9,6 +9,8 @@
     { "source": "/manifest.webmanifest", "destination": "/docs/smallshop-v2/manifest-admin-v10.webmanifest" },
     { "source": "/sw.js", "destination": "/docs/smallshop-v2/sw-v10.js" },
     { "source": "/app-icon.svg", "destination": "/docs/smallshop-v2/app-icon-v10.svg" },
+    { "source": "/app-icon-192.png", "destination": "/docs/smallshop-v2/app-icon-192.png" },
+    { "source": "/app-icon-512.png", "destination": "/docs/smallshop-v2/app-icon-512.png" },
     { "source": "/offline", "destination": "/docs/smallshop-v2/offline-v10.html" }
   ],
   "headers": [
