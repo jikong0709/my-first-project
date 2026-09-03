@@ -22,7 +22,7 @@
       <div id="orders"></div>
     </section>
     <section id="ledgerPane" class="hide">
-      <section class="card"><div class="filters"><div><div class="tiny" style="margin-bottom:5px">開始日期</div><input id="from" type="date"></div><div><div class="tiny" style="margin-bottom:5px">結束日期</div><input id="to" type="date"></div><button id="today" type="button" class="btn soft">今天</button><button id="month" type="button" class="btn soft">本月</button></div><div class="row" style="margin-top:10px"><button id="query" type="button" class="btn primary">查詢帳目</button><button id="csv" type="button" class="btn ghost">匯出 CSV</button></div></section>
+      <section class="card"><div class="filters"><div><div class="tiny" style="margin-bottom:5px">開始日期</div><input id="from" type="date"></div><div><div class="tiny" style="margin-bottom:5px">結束日期</div><input id="to" type="date"></div><button id="today" type="button" class="btn soft">今天</button><button id="month" type="button" class="btn soft">本月</button></div><div class="row" style="margin-top:10px"><button id="query" type="button" class="btn primary">查詢帳目</button><button id="csv" type="button" class="btn ghost">匯出 CSV（Excel相容）</button></div></section>
       <div id="ledgerMetrics" class="metrics"></div>
       <div class="sec">每日營業摘要</div>
       <section class="card tablewrap"><table class="table"><thead><tr><th>日期</th><th>訂單</th><th>營業額</th><th>現金</th><th>LINE Pay</th><th>未收款</th></tr></thead><tbody id="daily"></tbody></table></section>
@@ -84,9 +84,22 @@ async function loadLedger(){
 }
 function exportCsv(){
   if(!lastLedger){showStatus('請先查詢帳目',true);return}
+  const fmtTime=v=>{
+    const parts=new Intl.DateTimeFormat('zh-TW',{timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).formatToParts(new Date(v));
+    const g=t=>parts.find(x=>x.type===t)?.value||'';
+    return g('year')+'-'+g('month')+'-'+g('day')+' '+g('hour')+':'+g('minute')+':'+g('second');
+  };
+  const clean=v=>String(v??'').replace(/[\u200E\u200F\u202A-\u202E\u2066-\u2069]/g,'').replace(/\r?\n/g,' ');
+  const q=v=>'"'+clean(v).replace(/"/g,'""')+'"';
   const rows=[['時間','訂單','餐點','金額','付款方式','收款狀態','訂單狀態']];
-  lastLedger.orders.forEach(o=>rows.push([new Date(o.created_at).toLocaleString('zh-TW',{timeZone:'Asia/Taipei'}),o.order_no,(o.items||[]).map(x=>x.name+' x'+x.qty).join('、'),o.total,o.payment_method,o.payment_status,o.status]));
-  const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';const NL=String.fromCharCode(10);const csv='\ufeff'+rows.map(r=>r.map(q).join(',')).join(NL);const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});const href=URL.createObjectURL(blob);const a=document.createElement('a');a.href=href;a.download='營業流水帳_'+lastLedger.from+'_'+lastLedger.to+'.csv';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(href),1000)
+  lastLedger.orders.forEach(o=>rows.push([fmtTime(o.created_at),o.order_no,(o.items||[]).map(x=>x.name+' x'+x.qty).join('、'),Number(o.total||0),o.payment_method,o.payment_status,o.status]));
+  const csv='\ufeff'+rows.map(r=>r.map(q).join(',')).join('\r\n')+'\r\n';
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  const href=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=href;a.download='營業流水帳_'+lastLedger.from+'_'+lastLedger.to+'.csv';
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(href),1000);
+  showStatus('CSV 已匯出（UTF-8 BOM / CRLF，Excel 相容格式）');
 }
 $('#login').addEventListener('click',()=>{pin=$('#pin').value.trim();loadOrders();clearInterval(timer);timer=setInterval(()=>{if(currentPane==='orders')loadOrders()},3000)});
 $('#refresh').addEventListener('click',()=>currentPane==='orders'?loadOrders():loadLedger());
