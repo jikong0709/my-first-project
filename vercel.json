@@ -1,0 +1,30 @@
+{
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "rewrites": [
+    { "source": "/", "destination": "/docs/smallshop-v2/install-v10.html" },
+    { "source": "/app", "destination": "/docs/smallshop-v2/install-v10.html" },
+    { "source": "/admin", "destination": "/docs/smallshop-v2/admin-v9.html" },
+    { "source": "/order", "destination": "/docs/smallshop-v2/order-v9.html" },
+    { "source": "/manifest.webmanifest", "destination": "/docs/smallshop-v2/manifest-admin-v10.webmanifest" },
+    { "source": "/sw.js", "destination": "/docs/smallshop-v2/sw-v10.js" },
+    { "source": "/app-icon.svg", "destination": "/docs/smallshop-v2/app-icon-v10.svg" },
+    { "source": "/offline", "destination": "/docs/smallshop-v2/offline-v10.html" }
+  ],
+  "headers": [
+    {
+      "source": "/sw.js",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" },
+        { "key": "Service-Worker-Allowed", "value": "/" }
+      ]
+    },
+    {
+      "source": "/manifest.webmanifest",
+      "headers": [
+        { "key": "Content-Type", "value": "application/manifest+json; charset=utf-8" },
+        { "key": "Cache-Control", "value": "no-cache" }
+      ]
+    }
+  ]
+}
