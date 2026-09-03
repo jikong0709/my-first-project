@@ -1,11 +1,12 @@
-const CACHE='crispday-admin-v10-1';
+const CACHE='crispday-admin-v10-2';
 const APP_SHELL=[
-  './install-v10.html',
-  './admin-v9.html',
-  './order-v9.html',
-  './offline-v10.html',
-  './app-icon-v10.svg',
-  './manifest-admin-v10.webmanifest'
+  '/',
+  '/app',
+  '/admin',
+  '/order',
+  '/offline',
+  '/app-icon.svg',
+  '/manifest.webmanifest'
 ];
 
 self.addEventListener('install',event=>{
@@ -38,7 +39,7 @@ self.addEventListener('fetch',event=>{
         return fresh;
       }catch(_){
         const cached=await caches.match(req);
-        return cached || await caches.match('./offline-v10.html');
+        return cached || await caches.match('/offline');
       }
     })());
     return;
