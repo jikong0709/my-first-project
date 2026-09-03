@@ -1,0 +1,1 @@
+Crisp Day PWA package is ready for GitHub Pages. Enable Pages for this public repository, then the app can be installed from the generated HTTPS github.io URL.
