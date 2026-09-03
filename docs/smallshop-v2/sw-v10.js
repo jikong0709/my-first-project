@@ -1,4 +1,4 @@
-const CACHE='crispday-admin-v10-2';
+const CACHE='crispday-admin-v10-3';
 const APP_SHELL=[
   '/',
   '/app',
@@ -6,6 +6,8 @@ const APP_SHELL=[
   '/order',
   '/offline',
   '/app-icon.svg',
+  '/app-icon-192.png',
+  '/app-icon-512.png',
   '/manifest.webmanifest'
 ];
 
