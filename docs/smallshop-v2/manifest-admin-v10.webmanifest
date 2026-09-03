@@ -1,12 +1,12 @@
 {
-  "id": "crispday-store-console-v10",
+  "id": "/admin",
   "name": "脆日炸雞｜店家管理",
   "short_name": "脆日店務",
   "description": "脆日炸雞店家接單、收款、製作狀態與營業流水帳管理。",
   "lang": "zh-Hant",
   "dir": "ltr",
-  "start_url": "./admin-v9.html?app=1",
-  "scope": "./",
+  "start_url": "/admin?app=1",
+  "scope": "/",
   "display": "standalone",
   "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
   "orientation": "any",
@@ -15,7 +15,7 @@
   "categories": ["business", "food"],
   "icons": [
     {
-      "src": "./app-icon-v10.svg",
+      "src": "/app-icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
@@ -25,14 +25,14 @@
     {
       "name": "店家後台",
       "short_name": "接單",
-      "url": "./admin-v9.html?app=1",
-      "icons": [{"src":"./app-icon-v10.svg","sizes":"any","type":"image/svg+xml"}]
+      "url": "/admin?app=1",
+      "icons": [{"src":"/app-icon.svg","sizes":"any","type":"image/svg+xml"}]
     },
     {
       "name": "顧客點餐預覽",
       "short_name": "點餐頁",
-      "url": "./order-v9.html",
-      "icons": [{"src":"./app-icon-v10.svg","sizes":"any","type":"image/svg+xml"}]
+      "url": "/order",
+      "icons": [{"src":"/app-icon.svg","sizes":"any","type":"image/svg+xml"}]
     }
   ]
 }
