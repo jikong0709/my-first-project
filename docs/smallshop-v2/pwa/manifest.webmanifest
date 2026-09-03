@@ -1,0 +1,37 @@
+{
+  "name": "脆日炸雞｜店家管理",
+  "short_name": "脆日店家",
+  "description": "脆日炸雞店家接單、收款與營業流水帳",
+  "lang": "zh-Hant",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#F5EAD8",
+  "theme_color": "#FFE36A",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "即時接單",
+      "short_name": "接單",
+      "url": "./?view=orders"
+    },
+    {
+      "name": "營業流水帳",
+      "short_name": "流水帳",
+      "url": "./?view=ledger"
+    },
+    {
+      "name": "客戶點餐頁",
+      "short_name": "點餐頁",
+      "url": "./order.html"
+    }
+  ]
+}
