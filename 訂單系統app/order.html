@@ -6,6 +6,9 @@
   <meta name="theme-color" content="#F5C842">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="./app.css">
+  <style>
+    .track-box{margin:10px 0 18px;padding:15px;border-radius:18px;background:#fff7df;border:1px solid #ead59d;text-align:left}.track-head{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:10px}.track-head b{color:#392a21}.track-pay{font-size:12px;font-weight:850;color:#7d5a21}.track-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.track-step{padding:9px 5px;border-radius:12px;background:#eee4d8;color:#8a7b6c;text-align:center;font-size:12px;font-weight:900}.track-step.on{background:#f5c842;color:#302418}.track-step.done{background:#392a21;color:#fff}.track-cancel{padding:10px;border-radius:12px;background:#fff0ed;color:#9d3b30;font-weight:900;text-align:center}.track-note{margin-top:9px;color:#7d7065;font-size:12px;line-height:1.5}.track-actions{display:flex;gap:8px;margin-top:12px}.track-actions .btn{flex:1}
+  </style>
   <title>脆日炸雞｜手機點餐</title>
 </head>
 <body class="customer-body">
@@ -51,7 +54,20 @@
   </div>
 
   <div id="successModal" class="success-modal hidden">
-    <div class="success-card"><div class="success-kicker">ORDER RECEIVED</div><div class="success-title">訂單已送出</div><div id="successNo" class="success-no">A0000</div><div id="successInfo" class="success-info"></div><button id="newOrderBtn" class="btn btn-dark btn-wide">再點一筆</button></div>
+    <div class="success-card">
+      <div class="success-kicker">ORDER RECEIVED</div>
+      <div class="success-title">訂單已送出</div>
+      <div id="successNo" class="success-no">A0000</div>
+      <div id="successInfo" class="success-info"></div>
+      <div id="trackBox" class="track-box">
+        <div class="track-head"><b>訂單進度</b><span id="trackPay" class="track-pay">等待更新</span></div>
+        <div id="trackBody" class="track-steps">
+          <div class="track-step on">已接單</div><div class="track-step">製作中</div><div class="track-step">已完成</div>
+        </div>
+        <div id="trackNote" class="track-note">頁面開著時會自動更新訂單狀態。</div>
+        <div class="track-actions"><button id="refreshTrackBtn" class="btn btn-ghost" type="button">更新狀態</button><button id="newOrderBtn" class="btn btn-dark" type="button">再點一筆</button></div>
+      </div>
+    </div>
   </div>
 
   <script src="./config.js"></script>
