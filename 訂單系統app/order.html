@@ -6,9 +6,7 @@
   <meta name="theme-color" content="#F5C842">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="./app.css">
-  <style>
-    .track-box{margin:10px 0 18px;padding:15px;border-radius:18px;background:#fff7df;border:1px solid #ead59d;text-align:left}.track-head{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:10px}.track-head b{color:#392a21}.track-pay{font-size:12px;font-weight:850;color:#7d5a21}.track-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.track-step{padding:9px 5px;border-radius:12px;background:#eee4d8;color:#8a7b6c;text-align:center;font-size:12px;font-weight:900}.track-step.on{background:#f5c842;color:#302418}.track-step.done{background:#392a21;color:#fff}.track-cancel{padding:10px;border-radius:12px;background:#fff0ed;color:#9d3b30;font-weight:900;text-align:center}.track-note{margin-top:9px;color:#7d7065;font-size:12px;line-height:1.5}.track-actions{display:flex;gap:8px;margin-top:12px}.track-actions .btn{flex:1}
-  </style>
+  <link rel="stylesheet" href="./enhancements.css">
   <title>脆日炸雞｜手機點餐</title>
 </head>
 <body class="customer-body">
@@ -19,55 +17,62 @@
         <h1 id="storeName">脆日炸雞</h1>
         <div class="customer-sub">現點現炸 · 忠孝夜市</div>
       </div>
-      <div class="contact-card">
-        <div><span>TEL</span><b id="storePhone">0900-000-000</b></div>
-        <div><span>LOCATION</span><b id="storeAddress">台中市南區忠孝路・忠孝夜市</b></div>
+      <div class="customer-header-side">
+        <button id="myOrdersBtn" class="btn btn-ghost history-button" type="button">我的訂單 <span id="historyBadge" class="history-badge hidden">0</span></button>
+        <div class="contact-card">
+          <div><span>TEL</span><b id="storePhone">0900-000-000</b></div>
+          <div><span>LOCATION</span><b id="storeAddress">台中市南區忠孝路・忠孝夜市</b></div>
+        </div>
       </div>
     </header>
 
     <div id="orderStatus"></div>
     <section id="closedBanner" class="closed-banner hidden">目前暫停接單，可先查看菜單。</section>
-
-    <section class="dining-card">
-      <div class="dining-label">用餐方式 <span>請先選擇</span></div>
-      <div class="dining-switch">
-        <button class="dining-btn active" data-dining="外帶">外帶取餐</button>
-        <button class="dining-btn" data-dining="內用">店內用餐</button>
-      </div>
-      <label id="tableBox" class="table-box disabled"><span>桌號</span><input id="tableNo" disabled placeholder="選擇內用後填寫"><small id="tableHint">外帶免填桌號</small></label>
-    </section>
-
     <div id="categoryNav" class="category-nav"></div>
     <div id="menuRoot" class="menu-root"><div class="loading">菜單載入中…</div></div>
-
-    <section class="panel order-options">
-      <div class="section-title">付款方式</div>
-      <div id="paymentOptions" class="payment-options"></div>
-      <div id="paymentNote" class="muted"></div>
-      <label class="note-field"><span>訂單備註</span><textarea id="orderNote" maxlength="120" rows="2" placeholder="例如：胡椒多一點、不要辣"></textarea></label>
-    </section>
   </main>
 
-  <div class="checkout-bar">
-    <div class="checkout-total"><span>ORDER TOTAL</span><b id="orderTotal">NT$ 0</b><small id="cartCount">尚未選擇商品</small></div>
-    <button id="submitOrder" class="submit-order" disabled>送出訂單</button>
+  <div class="checkout-bar customer-cart-bar">
+    <div class="checkout-total"><span>購物車 CART</span><b id="orderTotal">NT$ 0</b><small id="cartCount">尚未選擇商品</small></div>
+    <button id="openCartBtn" class="submit-order" disabled>查看購物車</button>
   </div>
 
-  <div id="successModal" class="success-modal hidden">
-    <div class="success-card">
-      <div class="success-kicker">ORDER RECEIVED</div>
-      <div class="success-title">訂單已送出</div>
-      <div id="successNo" class="success-no">A0000</div>
-      <div id="successInfo" class="success-info"></div>
-      <div id="trackBox" class="track-box">
-        <div class="track-head"><b>訂單進度</b><span id="trackPay" class="track-pay">等待更新</span></div>
-        <div id="trackBody" class="track-steps">
-          <div class="track-step on">已接單</div><div class="track-step">製作中</div><div class="track-step">已完成</div>
-        </div>
-        <div id="trackNote" class="track-note">頁面開著時會自動更新訂單狀態。</div>
-        <div class="track-actions"><button id="refreshTrackBtn" class="btn btn-ghost" type="button">更新狀態</button><button id="newOrderBtn" class="btn btn-dark" type="button">再點一筆</button></div>
-      </div>
+  <div id="cartModal" class="modal-layer hidden" role="dialog" aria-modal="true" aria-labelledby="cartTitle">
+    <div class="modal-card cart-card">
+      <div class="modal-head"><div><div class="section-kicker">YOUR CART</div><h2 id="cartTitle">購物車</h2></div><button class="modal-close" data-close="cartModal" aria-label="關閉">×</button></div>
+      <div id="cartItems" class="cart-items"></div>
+      <div class="cart-total-row"><span>商品總計</span><b id="cartModalTotal">NT$ 0</b></div>
+      <div class="modal-actions"><button id="continueShoppingBtn" class="btn btn-ghost">繼續點餐</button><button id="goCheckoutBtn" class="btn btn-yellow">前往結帳</button></div>
     </div>
+  </div>
+
+  <div id="checkoutModal" class="modal-layer hidden" role="dialog" aria-modal="true" aria-labelledby="checkoutTitle">
+    <div class="modal-card checkout-card">
+      <div class="modal-head"><div><div class="section-kicker">CHECKOUT</div><h2 id="checkoutTitle">確認訂購資料</h2></div><button class="modal-close" data-close="checkoutModal" aria-label="關閉">×</button></div>
+      <section class="checkout-section"><div class="section-title">訂購人資料</div><div class="form-grid customer-fields"><label><span>姓名 *</span><input id="customerName" maxlength="40" autocomplete="name" placeholder="請輸入姓名"></label><label><span>手機電話 *</span><input id="customerPhone" inputmode="tel" autocomplete="tel" maxlength="16" placeholder="09xx-xxx-xxx"></label></div><div id="contactError" class="field-error hidden"></div></section>
+      <section class="checkout-section"><div class="section-title">用餐方式</div><div class="dining-switch"><button class="dining-btn active" data-dining="外帶" type="button">外帶取餐</button><button class="dining-btn" data-dining="內用" type="button">店內用餐</button></div><label id="tableBox" class="table-box disabled"><span>桌號</span><input id="tableNo" disabled placeholder="選擇內用後填寫"><small id="tableHint">外帶免填桌號</small></label></section>
+      <section class="checkout-section"><div class="section-title">付款方式</div><div id="paymentOptions" class="payment-options"></div><div id="paymentNote" class="muted"></div></section>
+      <section class="checkout-section"><label class="note-field"><span>訂單備註</span><textarea id="orderNote" maxlength="120" rows="2" placeholder="例如：胡椒多一點、不要辣"></textarea></label></section>
+      <div class="cart-total-row checkout-grand-total"><span>訂單合計</span><b id="checkoutTotal">NT$ 0</b></div>
+      <div class="modal-actions"><button id="backToCartBtn" class="btn btn-ghost">返回購物車</button><button id="reviewOrderBtn" class="btn btn-dark">確認購買</button></div>
+    </div>
+  </div>
+
+  <div id="confirmModal" class="modal-layer hidden" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+    <div class="modal-card confirm-card"><div class="section-kicker">FINAL CHECK</div><h2 id="confirmTitle">最後確認</h2><p class="muted">請再次確認餐點與訂購資料，送出後即建立訂單。</p><div id="confirmSummary" class="confirm-summary"></div><div class="modal-actions"><button id="editCheckoutBtn" class="btn btn-ghost">返回修改</button><button id="submitOrder" class="btn btn-yellow">確定送出訂單</button></div></div>
+  </div>
+
+  <div id="successModal" class="modal-layer success-modal hidden" role="dialog" aria-modal="true" aria-labelledby="successTitle">
+    <div class="modal-card success-card order-detail-card">
+      <div class="success-kicker">ORDER RECEIVED</div><div id="successTitle" class="success-title">取餐編號</div><div id="successNo" class="success-no">A0000</div><div id="successInfo" class="success-info"></div>
+      <div class="detail-section"><div class="detail-label">訂購餐點</div><div id="successItems" class="success-items"></div></div><div class="success-total"><span>合計</span><b id="successTotal">NT$ 0</b></div>
+      <div class="track-box"><div class="track-head"><b>目前狀態</b><span id="trackPay" class="track-pay">等待更新</span></div><div id="trackBody" class="track-steps"><div class="track-step on">已接單</div><div class="track-step">製作中</div><div class="track-step">已完成</div></div><div id="trackNote" class="track-note">頁面開著時會自動更新訂單狀態。</div><button id="refreshTrackBtn" class="btn btn-ghost btn-wide" type="button">更新狀態</button></div>
+      <div class="modal-actions"><button id="showHistoryFromSuccess" class="btn btn-ghost">查看我的訂單</button><button id="newOrderBtn" class="btn btn-dark">繼續點餐</button></div>
+    </div>
+  </div>
+
+  <div id="historyModal" class="modal-layer hidden" role="dialog" aria-modal="true" aria-labelledby="historyTitle">
+    <div class="modal-card history-card"><div class="modal-head"><div><div class="section-kicker">MY ORDERS</div><h2 id="historyTitle">我的訂單</h2></div><button class="modal-close" data-close="historyModal" aria-label="關閉">×</button></div><p class="muted">此裝置只保存訂單編號與查詢憑證，訂單內容每次都由系統重新讀取。</p><div id="historyList" class="history-list"><div class="loading">讀取中…</div></div></div>
   </div>
 
   <script src="./config.js"></script>

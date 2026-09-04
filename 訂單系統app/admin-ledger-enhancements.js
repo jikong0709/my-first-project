@@ -1,0 +1,11 @@
+loadLedger=async function(){
+  const from=$('#fromDate').value,to=$('#toDate').value;if(!from||!to)return;$('#queryLedger').disabled=true;
+  try{
+    const d=await rpc('smallshop_ledger',{p_token:token,p_from:from,p_to:to}),a=Array.isArray(d.orders)?d.orders:[],s=summarize(a);lastLedger={from:d.from||from,to:d.to||to,orders:a};
+    $('#ledgerMetrics').innerHTML=metric('營業額',money(s.m.revenue))+metric('訂單',s.m.count)+metric('現金',money(s.m.cash))+metric('LINE Pay',money(s.m.line));
+    $('#dailyRows').innerHTML=s.daily.length?s.daily.map(x=>`<tr><td>${x.date}</td><td>${x.orders}</td><td>${money(x.revenue)}</td><td>${money(x.cash)}</td><td>${money(x.line)}</td><td>${x.unpaid}</td></tr>`).join(''):'<tr><td colspan="6">沒有資料</td></tr>';
+    $('#productRanks').innerHTML=s.products.length?s.products.map((x,i)=>`<div class="rank-row"><b>${i+1}. ${esc(x.name)}</b><span>${x.qty} 份</span><b>${money(x.amount)}</b></div>`).join(''):'沒有商品銷售資料';
+    $('#ledgerRows').innerHTML=a.length?a.map(o=>`<tr><td>${fmt(o.created_at)}</td><td><b>${esc(o.order_no)}</b></td><td>${esc(o.customer_name||'')}<br><small>${esc(prettyPhone(o.customer_phone||''))}</small></td><td>${esc((o.items||[]).map(i=>i.name+'×'+i.qty).join('、'))}</td><td>${money(o.total)}</td><td>${esc(o.payment_method)}</td><td>${esc(o.payment_status)}</td><td>${esc(o.status)}</td></tr>`).join(''):'<tr><td colspan="8">沒有訂單</td></tr>';
+  }catch(e){status(e.message||'帳目讀取失敗',true)}finally{$('#queryLedger').disabled=false}
+};
+$('#exportCsv').onclick=()=>{if(!lastLedger){status('請先查詢帳目。',true);return}const q=v=>'"'+String(v??'').replace(/"/g,'""').replace(/\r?\n/g,' ')+'"',rows=[['時間','訂單','姓名','電話','餐點','金額','付款方式','收款狀態','訂單狀態']];for(const o of lastLedger.orders)rows.push([fmt(o.created_at),o.order_no,o.customer_name||'',prettyPhone(o.customer_phone||''),(o.items||[]).map(i=>i.name+' x'+i.qty).join('、'),Number(o.total||0),o.payment_method,o.payment_status,o.status]);const blob=new Blob(['\ufeff'+rows.map(r=>r.map(q).join(',')).join('\r\n')+'\r\n'],{type:'text/csv;charset=utf-8'}),a=document.createElement('a'),url=URL.createObjectURL(blob);a.href=url;a.download=`${store?.name||'店家'}_營業流水_${lastLedger.from}_${lastLedger.to}.csv`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
