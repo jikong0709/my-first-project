@@ -1,4 +1,4 @@
-const CACHE='crispday-store-20260904-1';
+const CACHE='crispday-store-20260904-2';
 const STATIC=['./','./index.html','./order.html','./app.css','./config.js','./admin.js','./order.js','./manifest.webmanifest','./icon.svg','./icon-192.png','./icon-512.png','./offline.html'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(STATIC)));self.skipWaiting()});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));self.clients.claim()});
