@@ -11,6 +11,9 @@
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="./icon-192.png">
   <link rel="stylesheet" href="./app.css">
+  <style>
+    .qr-visual{display:grid;grid-template-columns:minmax(190px,240px) 1fr;gap:22px;align-items:center;margin:16px 0}.qr-image{width:100%;aspect-ratio:1;background:#fff;border:1px solid #e6d9c7;border-radius:18px;padding:12px;box-shadow:0 10px 24px rgba(74,52,35,.08)}.qr-help{color:#7d7065;font-size:13px;line-height:1.7}.qr-help b{display:block;color:#392a21;font-size:16px;margin-bottom:4px}@media(max-width:620px){.qr-visual{grid-template-columns:1fr}.qr-image{max-width:250px;margin:auto}}
+  </style>
   <title>脆日炸雞｜店家管理</title>
 </head>
 <body>
@@ -131,8 +134,11 @@
         <section class="panel qr-panel">
           <div class="qr-copy">固定點餐網址</div>
           <div id="qrUrl" class="url-box"></div>
-          <div class="button-row"><button id="copyQrUrl" class="btn btn-dark">複製網址</button><a id="openQrUrl" class="btn btn-yellow" target="_blank" rel="noopener">開啟顧客頁</a></div>
-          <p class="muted">正式 QR Code 會以這個固定網址製作；網址不再使用 raw.githack 或 htmlpreview。</p>
+          <div class="qr-visual">
+            <img class="qr-image" src="./customer-qr.svg" alt="脆日炸雞顧客點餐 QR Code">
+            <div class="qr-help"><b>店面固定 QR Code</b>可印在桌牌、菜單、攤位立牌上。QR 直接指向正式 GitHub Pages 點餐網址，不使用 raw.githack 或 htmlpreview。</div>
+          </div>
+          <div class="button-row"><button id="copyQrUrl" class="btn btn-dark">複製網址</button><a id="openQrUrl" class="btn btn-yellow" target="_blank" rel="noopener">開啟顧客頁</a><a class="btn btn-ghost" href="./customer-qr.svg" download="脆日炸雞_顧客點餐QR.svg">下載 QR</a></div>
         </section>
       </section>
     </div>
