@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#F5C842">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./app.css">
+  <title>脆日炸雞｜手機點餐</title>
+</head>
+<body class="customer-body">
+  <main class="customer-shell">
+    <header class="customer-header">
+      <div>
+        <div id="storeEn" class="eyebrow">CRISP DAY</div>
+        <h1 id="storeName">脆日炸雞</h1>
+        <div class="customer-sub">現點現炸 · 忠孝夜市</div>
+      </div>
+      <div class="contact-card">
+        <div><span>TEL</span><b id="storePhone">0900-000-000</b></div>
+        <div><span>LOCATION</span><b id="storeAddress">台中市南區忠孝路・忠孝夜市</b></div>
+      </div>
+    </header>
+
+    <div id="orderStatus"></div>
+    <section id="closedBanner" class="closed-banner hidden">目前暫停接單，可先查看菜單。</section>
+
+    <section class="dining-card">
+      <div class="dining-label">用餐方式 <span>請先選擇</span></div>
+      <div class="dining-switch">
+        <button class="dining-btn active" data-dining="外帶">外帶取餐</button>
+        <button class="dining-btn" data-dining="內用">店內用餐</button>
+      </div>
+      <label id="tableBox" class="table-box disabled"><span>桌號</span><input id="tableNo" disabled placeholder="選擇內用後填寫"><small id="tableHint">外帶免填桌號</small></label>
+    </section>
+
+    <div id="categoryNav" class="category-nav"></div>
+    <div id="menuRoot" class="menu-root"><div class="loading">菜單載入中…</div></div>
+
+    <section class="panel order-options">
+      <div class="section-title">付款方式</div>
+      <div id="paymentOptions" class="payment-options"></div>
+      <div id="paymentNote" class="muted"></div>
+      <label class="note-field"><span>訂單備註</span><textarea id="orderNote" maxlength="120" rows="2" placeholder="例如：胡椒多一點、不要辣"></textarea></label>
+    </section>
+  </main>
+
+  <div class="checkout-bar">
+    <div class="checkout-total"><span>ORDER TOTAL</span><b id="orderTotal">NT$ 0</b><small id="cartCount">尚未選擇商品</small></div>
+    <button id="submitOrder" class="submit-order" disabled>送出訂單</button>
+  </div>
+
+  <div id="successModal" class="success-modal hidden">
+    <div class="success-card"><div class="success-kicker">ORDER RECEIVED</div><div class="success-title">訂單已送出</div><div id="successNo" class="success-no">A0000</div><div id="successInfo" class="success-info"></div><button id="newOrderBtn" class="btn btn-dark btn-wide">再點一筆</button></div>
+  </div>
+
+  <script src="./config.js"></script>
+  <script src="./order.js"></script>
+</body>
+</html>
