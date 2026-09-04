@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#F5C842">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="脆日店家">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+  <link rel="stylesheet" href="./app.css">
+  <title>脆日炸雞｜店家管理</title>
+</head>
+<body>
+  <main class="shell">
+    <header class="app-header">
+      <div class="brand-block">
+        <div class="eyebrow">CRISP DAY · STORE</div>
+        <h1 id="brandName">脆日炸雞</h1>
+        <div id="brandMeta" class="brand-meta">忠孝夜市 · 店家管理</div>
+      </div>
+      <div class="header-actions">
+        <button id="installBtn" class="btn btn-yellow hidden">安裝 App</button>
+        <a id="customerLink" class="btn btn-ghost" href="./order.html?store=crisp-day" target="_blank" rel="noopener">顧客點餐</a>
+      </div>
+    </header>
+
+    <div id="installHint" class="notice hidden"></div>
+    <div id="status"></div>
+
+    <section id="loginGate" class="panel login-panel">
+      <div class="section-kicker">店家登入</div>
+      <h2>登入店家管理 App</h2>
+      <p class="muted">密碼只送往 Supabase 驗證，不寫在公開前端。</p>
+      <div class="login-grid">
+        <label><span>店家代碼</span><input id="storeSlug" value="crisp-day" autocomplete="username"></label>
+        <label><span>管理密碼</span><input id="passcode" type="password" inputmode="numeric" autocomplete="current-password" placeholder="6–12 位數字"></label>
+      </div>
+      <button id="loginBtn" class="btn btn-dark btn-wide">登入</button>
+      <button id="showSetupBtn" class="text-button" type="button">第一次使用？設定管理密碼</button>
+
+      <div id="setupBox" class="setup-box hidden">
+        <div class="setup-title">首次安全設定</div>
+        <p class="muted">首次設定碼只使用一次，完成後會立即失效。</p>
+        <label><span>首次設定碼</span><input id="setupToken" autocomplete="off" placeholder="貼上首次設定碼"></label>
+        <label><span>設定新密碼</span><input id="newPasscode" type="password" inputmode="numeric" autocomplete="new-password" placeholder="6–12 位數字"></label>
+        <button id="setupBtn" class="btn btn-yellow btn-wide">完成首次設定</button>
+      </div>
+    </section>
+
+    <div id="app" class="hidden">
+      <nav class="tabs" aria-label="店家功能">
+        <button class="tab active" data-tab="orders">即時接單</button>
+        <button class="tab" data-tab="ledger">營業流水</button>
+        <button class="tab" data-tab="menu">菜單管理</button>
+        <button class="tab" data-tab="settings">店家設定</button>
+        <button class="tab" data-tab="qr">QR 管理</button>
+      </nav>
+
+      <section id="pane-orders" class="pane">
+        <div class="toolbar"><div><div class="section-kicker">LIVE ORDERS</div><h2>今日訂單</h2></div><button id="refreshOrders" class="btn btn-ghost">更新</button></div>
+        <div id="orderMetrics" class="metric-grid"></div>
+        <div id="orders" class="order-list"></div>
+      </section>
+
+      <section id="pane-ledger" class="pane hidden">
+        <div class="toolbar"><div><div class="section-kicker">SALES</div><h2>營業流水帳</h2></div></div>
+        <section class="panel filter-panel">
+          <label><span>開始日期</span><input id="fromDate" type="date"></label>
+          <label><span>結束日期</span><input id="toDate" type="date"></label>
+          <button id="todayBtn" class="btn btn-soft">今天</button>
+          <button id="monthBtn" class="btn btn-soft">本月</button>
+          <button id="queryLedger" class="btn btn-dark">查詢</button>
+          <button id="exportCsv" class="btn btn-ghost">匯出 CSV</button>
+        </section>
+        <div id="ledgerMetrics" class="metric-grid"></div>
+        <section class="panel table-panel"><div class="section-title">每日摘要</div><div class="table-scroll"><table><thead><tr><th>日期</th><th>訂單</th><th>營業額</th><th>現金</th><th>LINE Pay</th><th>未收款</th></tr></thead><tbody id="dailyRows"></tbody></table></div></section>
+        <section class="panel"><div class="section-title">商品銷售排行</div><div id="productRanks"></div></section>
+        <section class="panel table-panel"><div class="section-title">訂單流水</div><div class="table-scroll"><table><thead><tr><th>時間</th><th>訂單</th><th>餐點</th><th>金額</th><th>付款</th><th>收款</th><th>狀態</th></tr></thead><tbody id="ledgerRows"></tbody></table></div></section>
+      </section>
+
+      <section id="pane-menu" class="pane hidden">
+        <div class="toolbar"><div><div class="section-kicker">MENU</div><h2>菜單管理</h2></div><button id="newMenuBtn" class="btn btn-yellow">＋ 新增商品</button></div>
+        <div id="menuSummary" class="muted"></div>
+        <div id="menuAdmin" class="menu-admin"></div>
+        <section id="menuEditor" class="panel editor hidden">
+          <div class="section-title" id="menuEditorTitle">新增商品</div>
+          <input id="menuId" type="hidden">
+          <div class="form-grid">
+            <label><span>商品名稱</span><input id="menuName"></label>
+            <label><span>價格</span><input id="menuPrice" type="number" min="0" step="1"></label>
+            <label><span>分類</span><input id="menuCategory" list="categoryList"></label>
+            <label><span>排序</span><input id="menuSort" type="number" step="1" value="0"></label>
+          </div>
+          <datalist id="categoryList"></datalist>
+          <label class="switch-row"><input id="menuActive" type="checkbox" checked><span>上架販售</span></label>
+          <div class="button-row"><button id="saveMenuBtn" class="btn btn-dark">儲存商品</button><button id="cancelMenuBtn" class="btn btn-ghost">取消</button></div>
+        </section>
+      </section>
+
+      <section id="pane-settings" class="pane hidden">
+        <div class="toolbar"><div><div class="section-kicker">STORE</div><h2>店家設定</h2></div></div>
+        <section class="panel">
+          <div class="form-grid">
+            <label><span>店家名稱</span><input id="setName"></label>
+            <label><span>英文名稱</span><input id="setBrandEn"></label>
+            <label><span>聯絡電話</span><input id="setPhone"></label>
+            <label class="span-2"><span>地址</span><input id="setAddress"></label>
+          </div>
+          <div class="setting-cards">
+            <label class="toggle-card"><input id="setOpen" type="checkbox"><div><b>接受訂單</b><small>關閉後顧客仍看得到菜單，但無法送單。</small></div></label>
+            <label class="toggle-card"><input id="setCash" type="checkbox"><div><b>現金付款</b><small>允許顧客選擇現金。</small></div></label>
+            <label class="toggle-card"><input id="setLine" type="checkbox"><div><b>LINE Pay</b><small id="lineModeNote">目前為測試／人工確認模式。</small></div></label>
+          </div>
+          <button id="saveStoreBtn" class="btn btn-dark">儲存店家設定</button>
+        </section>
+        <section class="panel">
+          <div class="section-title">變更管理密碼</div>
+          <div class="form-grid">
+            <label><span>目前密碼</span><input id="currentPass" type="password" inputmode="numeric"></label>
+            <label><span>新密碼</span><input id="changePass" type="password" inputmode="numeric" placeholder="6–12 位數字"></label>
+          </div>
+          <div class="button-row"><button id="changePassBtn" class="btn btn-yellow">更新密碼</button><button id="logoutBtn" class="btn btn-ghost">登出此裝置</button></div>
+        </section>
+      </section>
+
+      <section id="pane-qr" class="pane hidden">
+        <div class="toolbar"><div><div class="section-kicker">QR & LINK</div><h2>顧客點餐入口</h2></div></div>
+        <section class="panel qr-panel">
+          <div class="qr-copy">固定點餐網址</div>
+          <div id="qrUrl" class="url-box"></div>
+          <div class="button-row"><button id="copyQrUrl" class="btn btn-dark">複製網址</button><a id="openQrUrl" class="btn btn-yellow" target="_blank" rel="noopener">開啟顧客頁</a></div>
+          <p class="muted">正式 QR Code 會以這個固定網址製作；網址不再使用 raw.githack 或 htmlpreview。</p>
+        </section>
+      </section>
+    </div>
+  </main>
+
+  <script src="./config.js"></script>
+  <script src="./admin.js"></script>
+  <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));}</script>
+</body>
+</html>
