@@ -1,18 +1,23 @@
 # 訂單系統產品基準｜ORDER_SYSTEM_DEMO_BASELINE_V1
 
-狀態：**FORMAL DEMO BASELINE｜Phase 0**  
+狀態：**PHASE_0_BASELINE_SEALED_BY_COMMIT**  
 生效日期：2026-09-07（Asia/Taipei）
 
 ## 0. Baseline Identity
 
 - Baseline 名稱：`ORDER_SYSTEM_DEMO_BASELINE_V1`
 - Baseline GitHub commit：`ee2fbc5fa22e5313d500c128024117dd6e271893`
+- Baseline Authority：**上述不可變 Git commit 即為 DEMO Baseline 的正式回復／比對 Authority。**
 - GitHub repository：`jikong0709/my-first-project`
 - 唯一正式目錄：`訂單系統app/`
 - 正式分支：`main`
 - Supabase project：`uuefhkqtslcdkdgeyiof`
-- Baseline tag 目標名稱：`ORDER_SYSTEM_DEMO_BASELINE_V1`
-- Tag 狀態：本文件建立時 GitHub tag ref 尚未存在；Baseline 的不可變對照 commit 為上述 SHA。建立 tag 時必須指向該 SHA，不得指向本文件後續 commit。
+- Baseline tag 名稱：`ORDER_SYSTEM_DEMO_BASELINE_V1`
+- Git tag 狀態：`PENDING_TOOL_CAPABILITY`
+- 目前工具環境沒有正式 Git tag ref 寫入能力，因此**不得再嘗試建立、模擬或以 branch 取代 tag**。
+- 未來具備正式 Git tag 寫入能力時，`ORDER_SYSTEM_DEMO_BASELINE_V1` **只能指向** `ee2fbc5fa22e5313d500c128024117dd6e271893`。
+- 不得將該 tag 指向當時最新 `main`、本文件後續 commit、Phase 1 commit 或任何其他 SHA。
+- Git tag pending **不阻塞 Phase 1**；Phase 1 的回復／比對基準永遠使用上述 Baseline commit。
 
 > 本 Baseline 固定「目前可運作的脆日炸雞 DEMO」，不是產品核心品牌定義。不得以複製本 Baseline 網站或資料夾方式建立新店家。
 
@@ -441,4 +446,6 @@ Phase 0 / Phase 1 不應因產品化而改動：
 - 不複製網站。
 - 不建立新版資料夾。
 
-下一步僅依 `PHASE1_MULTI_TENANT_PLAN.md` 進入 Phase 1；Phase 0 不自動開始 Phase 1。
+Phase 0 正式狀態：`PHASE_0_BASELINE_SEALED_BY_COMMIT`。
+
+下一步僅依 `PHASE1_MULTI_TENANT_PLAN.md` 進入 Phase 1；Git tag `PENDING_TOOL_CAPABILITY` 不阻塞 Phase 1。Phase 0 不自動開始 Phase 1。
