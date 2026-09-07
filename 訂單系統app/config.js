@@ -2,14 +2,60 @@ window.ORDER_SYSTEM_CONFIG = Object.freeze({
   supabaseUrl: 'https://uuefhkqtslcdkdgeyiof.supabase.co',
   publishableKey: 'sb_publishable_v_Yzne9MJIj-9sjXYN-NDA_iA_u8wii',
   appName: '訂單系統',
-  appVersion: '2026.09.07.p1-1'
+  appVersion: '2026.09.07.p1-2a'
 });
+
+const ORDER_SYSTEM_THEME_KEYS = Object.freeze([
+  '--brand-primary','--brand-secondary','--brand-bg','--brand-surface','--brand-text',
+  '--brand-muted','--brand-line','--brand-accent','--brand-button','--brand-button-text',
+  '--brand-soft','--brand-danger','--brand-radius'
+]);
+const ORDER_SYSTEM_THEME_COLOR=/^#[0-9A-Fa-f]{6}$/;
+const ORDER_SYSTEM_THEME_RADIUS=/^(?:0|8|12|16|18|20|22|24)px$|^999px$/;
+window.ORDER_SYSTEM_THEME=Object.freeze({
+  apply(branding){
+    const vars=branding?.css_vars||{},style=document.documentElement.style;
+    for(const key of ORDER_SYSTEM_THEME_KEYS){
+      const value=String(vars[key]||'').trim();
+      const valid=key==='--brand-radius'?ORDER_SYSTEM_THEME_RADIUS.test(value):ORDER_SYSTEM_THEME_COLOR.test(value);
+      if(valid)style.setProperty(key,value);
+    }
+    document.documentElement.dataset.theme=branding?.theme_key||'default';
+  },
+  reset(){
+    const style=document.documentElement.style;
+    for(const key of ORDER_SYSTEM_THEME_KEYS)style.removeProperty(key);
+    document.documentElement.dataset.theme='default';
+  }
+});
+
+// Generic Core theme is the pre-resolution authority. Tenant branding may only arrive
+// from the two resolver read models established by P1-1.
+window.ORDER_SYSTEM_THEME.reset();
+const ORDER_SYSTEM_NATIVE_FETCH=window.fetch.bind(window);
+window.fetch=async(...args)=>{
+  const response=await ORDER_SYSTEM_NATIVE_FETCH(...args);
+  try{
+    const input=args[0],url=String(input instanceof Request?input.url:input||'');
+    const resolver=url.endsWith('/smallshop_public_store')||url.endsWith('/smallshop_admin_session_info');
+    if(response.ok&&resolver){
+      response.clone().json().then(data=>{
+        const branding=data?.branding||data?.store?.branding;
+        if(branding)window.ORDER_SYSTEM_THEME.apply(branding);
+      }).catch(()=>{});
+    }
+  }catch{}
+  return response;
+};
 
 // Shared formal-main visual layer. Loaded here so both store and customer pages get it.
 (()=>{const link=document.createElement('link');link.rel='stylesheet';link.href='./enhancements.css?v=20260904-3';document.head.appendChild(link)})();
 
 addEventListener('DOMContentLoaded',()=>{
   if(!document.querySelector('#loginGate'))return;
+  const loginGate=document.querySelector('#loginGate');
+  new MutationObserver(()=>{if(!loginGate.classList.contains('hidden'))window.ORDER_SYSTEM_THEME.reset()}).observe(loginGate,{attributes:true,attributeFilter:['class']});
+  if(!loginGate.classList.contains('hidden'))window.ORDER_SYSTEM_THEME.reset();
   const setupButton=document.querySelector('#showSetupBtn'),setupBox=document.querySelector('#setupBox');
   if(setupButton)setupButton.classList.add('hidden');if(setupBox)setupBox.classList.add('hidden');
   if(!document.querySelector('#installHelpModal')){
