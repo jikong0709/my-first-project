@@ -1,11 +1,12 @@
-const CFG=window.CRISP_CONFIG;
+const CFG=window.ORDER_SYSTEM_CONFIG;
 const RPC=CFG.supabaseUrl+'/rest/v1/rpc/';
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=n=>'NT$ '+Number(n||0).toLocaleString('zh-TW');
-const storeSlug=new URLSearchParams(location.search).get('store')||CFG.defaultStore;
-const HISTORY_KEY='crispday.customer.order_refs.v2';
-let menu=[],store=null,cart=new Map(),dining='外帶',payment='現金',submitting=false,tracking=null,trackTimer=null,currentOrder=null;
+const storeSlug=(new URLSearchParams(location.search).get('store')||'').trim();
+const HISTORY_PREFIX='order-system.customer.order_refs.v1:';
+const LEGACY_HISTORY_KEY='crispday.customer.order_refs.v2';
+let menu=[],store=null,tenantId='',historyKey='',cart=new Map(),dining='外帶',payment='現金',submitting=false,tracking=null,trackTimer=null,currentOrder=null;
 
 async function rpc(name,body={}){
   const r=await fetch(RPC+name,{method:'POST',headers:{apikey:CFG.publishableKey,'Content-Type':'application/json'},body:JSON.stringify(body)});
@@ -24,22 +25,41 @@ function closeModal(id){$('#'+id).classList.add('hidden');if(!$$('.modal-layer:n
 $$('[data-close]').forEach(b=>b.addEventListener('click',()=>closeModal(b.dataset.close)));
 $$('.modal-layer').forEach(m=>m.addEventListener('click',e=>{if(e.target===m&&m.id!=='successModal')closeModal(m.id)}));
 
-function historyRefs(){try{return (JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]')||[]).filter(x=>x&&x.storeSlug&&x.orderNo&&x.publicToken)}catch{return[]}}
-function saveHistoryRef(order){const next=[{storeSlug,orderNo:order.order_no,publicToken:order.public_token,createdAt:order.created_at||new Date().toISOString()},...historyRefs().filter(x=>!(x.storeSlug===storeSlug&&x.orderNo===order.order_no))].slice(0,50);localStorage.setItem(HISTORY_KEY,JSON.stringify(next));updateHistoryBadge()}
-function updateHistoryBadge(){const n=historyRefs().filter(x=>x.storeSlug===storeSlug).length;$('#historyBadge').textContent=n;$('#historyBadge').classList.toggle('hidden',!n)}
-
-async function init(){
-  updateHistoryBadge();
+function historyRefs(){
+  if(!historyKey||!tenantId)return[];
+  try{return (JSON.parse(localStorage.getItem(historyKey)||'[]')||[]).filter(x=>x&&x.storeId===tenantId&&x.orderNo&&x.publicToken)}catch{return[]}
+}
+function migrateLegacyHistory(){
+  if(!historyKey||!tenantId||localStorage.getItem(historyKey)!==null)return;
   try{
+    const legacy=(JSON.parse(localStorage.getItem(LEGACY_HISTORY_KEY)||'[]')||[]).filter(x=>x&&x.storeSlug===storeSlug&&x.orderNo&&x.publicToken);
+    if(legacy.length)localStorage.setItem(historyKey,JSON.stringify(legacy.map(x=>({storeId:tenantId,orderNo:x.orderNo,publicToken:x.publicToken,createdAt:x.createdAt||new Date().toISOString()}))));
+    localStorage.removeItem(LEGACY_HISTORY_KEY);
+  }catch{}
+}
+function saveHistoryRef(order){const next=[{storeId:tenantId,orderNo:order.order_no,publicToken:order.public_token,createdAt:order.created_at||new Date().toISOString()},...historyRefs().filter(x=>x.orderNo!==order.order_no)].slice(0,50);localStorage.setItem(historyKey,JSON.stringify(next));updateHistoryBadge()}
+function updateHistoryBadge(){const n=historyRefs().length;$('#historyBadge').textContent=n;$('#historyBadge').classList.toggle('hidden',!n)}
+
+async function resolveTenant(){
+  if(!storeSlug)throw new Error('網址缺少店家代碼，請使用店家提供的正式點餐連結。');
+  const resolved=await rpc('smallshop_public_store',{p_store_slug:storeSlug});
+  if(!resolved?.store_id||resolved.slug!==storeSlug)throw new Error('找不到店家或店家目前未開放。');
+  return resolved;
+}
+async function init(){
+  if(!storeSlug){$('#menuRoot').innerHTML='';show('網址缺少店家代碼，請使用店家提供的正式點餐連結。',true);return}
+  try{
+    store=await resolveTenant();tenantId=store.store_id;historyKey=HISTORY_PREFIX+tenantId;migrateLegacyHistory();updateHistoryBadge();
     const d=await rpc('smallshop_get_menu',{p_store_slug:storeSlug});
-    store=d.store||{};menu=Array.isArray(d.menu)?d.menu:[];
+    if(d.store?.slug&&d.store.slug!==store.slug)throw new Error('店家解析結果不一致，請重新整理。');
+    menu=Array.isArray(d.menu)?d.menu:[];
     applyStore();renderMenu();renderPayment();renderCartBar();
   }catch(e){$('#menuRoot').innerHTML='';show(e.message||'菜單載入失敗',true)}
 }
 function applyStore(){
-  $('#storeName').textContent=store.name||'脆日炸雞';$('#storeEn').textContent=store.brand_en||'CRISP DAY';
-  $('#storePhone').textContent=store.phone||'電話未設定';$('#storeAddress').textContent=store.address||'忠孝夜市';
-  document.title=(store.name||'脆日炸雞')+'｜手機點餐';$('#closedBanner').classList.toggle('hidden',!!store.business_open);
+  $('#storeName').textContent=store.name||'店家';$('#storeEn').textContent=store.brand_en||'STORE';$('#storeSub').textContent=store.address||'店家點餐';
+  $('#storePhone').textContent=store.phone||'電話未設定';$('#storeAddress').textContent=store.address||'地址未設定';
+  document.title=(store.name||'店家')+'｜手機點餐';$('#closedBanner').classList.toggle('hidden',!!store.business_open);
 }
 function renderMenu(){
   const groups={};for(const x of menu)(groups[x.category]??=[]).push(x);
@@ -103,7 +123,7 @@ function resetOrdering(){stopTracking();tracking=null;currentOrder=null;cart.cle
 $('#newOrderBtn').onclick=()=>{closeModal('successModal');resetOrdering();scrollTo({top:0,behavior:'smooth'})};
 
 async function loadHistory(){
-  const refs=historyRefs().filter(x=>x.storeSlug===storeSlug);updateHistoryBadge();
+  const refs=historyRefs();updateHistoryBadge();
   if(!refs.length){$('#historyList').innerHTML='<div class="empty-state">這台裝置目前沒有歷史訂單。</div>';return}
   $('#historyList').innerHTML='<div class="loading">訂單讀取中…</div>';
   const rows=[];

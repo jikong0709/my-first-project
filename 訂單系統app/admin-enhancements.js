@@ -9,7 +9,7 @@ renderOrders=function(){
 printReceipt=function(o){
   const rows=(o.items||[]).map(i=>`<div style="display:flex;justify-content:space-between;margin:5px 0"><span>${esc(i.name)} ×${i.qty}</span><span>${money(Number(i.price||0)*Number(i.qty||0))}</span></div>`).join('');
   const w=open('','_blank');if(!w)return;
-  w.document.write(`<!doctype html><html lang="zh-Hant"><meta charset="utf-8"><body style="font-family:sans-serif;width:72mm;margin:auto;padding:5mm"><div style="text-align:center;font-size:24px;font-weight:900">${esc(store?.name||'脆日炸雞')}</div><div style="text-align:center;font-size:11px">${esc(store?.address||'忠孝夜市')}</div><div style="text-align:center;font-size:30px;font-weight:900;margin:8px">${esc(o.order_no)}</div><div style="font-size:13px;font-weight:700">訂購人：${esc(o.customer_name||'')}<br>電話：${esc(prettyPhone(o.customer_phone||''))}</div><hr>${rows}<hr><b>合計 ${money(o.total)}</b><p>${esc(o.dining_type)}${o.table_no?' · 桌 '+esc(o.table_no):''}<br>${esc(o.payment_method)} · ${esc(o.payment_status)}<br>${o.note?'備註：'+esc(o.note)+'<br>':''}${fmt(o.created_at)}</p><button onclick="print()" style="width:100%;padding:12px">列印訂單</button></body></html>`);w.document.close()
+  w.document.write(`<!doctype html><html lang="zh-Hant"><meta charset="utf-8"><body style="font-family:sans-serif;width:72mm;margin:auto;padding:5mm"><div style="text-align:center;font-size:24px;font-weight:900">${esc(store?.name||'店家')}</div><div style="text-align:center;font-size:11px">${esc(store?.address||'地址未設定')}</div><div style="text-align:center;font-size:30px;font-weight:900;margin:8px">${esc(o.order_no)}</div><div style="font-size:13px;font-weight:700">訂購人：${esc(o.customer_name||'')}<br>電話：${esc(prettyPhone(o.customer_phone||''))}</div><hr>${rows}<hr><b>合計 ${money(o.total)}</b><p>${esc(o.dining_type)}${o.table_no?' · 桌 '+esc(o.table_no):''}<br>${esc(o.payment_method)} · ${esc(o.payment_status)}<br>${o.note?'備註：'+esc(o.note)+'<br>':''}${fmt(o.created_at)}</p><button onclick="print()" style="width:100%;padding:12px">列印訂單</button></body></html>`);w.document.close()
 };
 
 $('#changePassBtn').onclick=async()=>{
@@ -20,7 +20,7 @@ $('#changePassBtn').onclick=async()=>{
   try{
     const d=await rpc('smallshop_admin_change_passcode',{p_token:token,p_current:cur,p_new:next});
     if(!d.ok){status(d.error||'密碼更新失敗',true);return}
-    $('#currentPass').value='';$('#changePass').value='';setSession('');store=null;showGate();
+    $('#currentPass').value='';$('#changePass').value='';setSession('');store=null;tenantId='';showGate();
     status('管理密碼已更新。舊密碼已失效，所有店家裝置已登出，請使用新密碼重新登入。')
   }catch(e){status(e.message||'密碼更新失敗',true)}finally{$('#changePassBtn').disabled=false}
 };

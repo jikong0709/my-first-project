@@ -14,19 +14,19 @@
   <style>
     .qr-visual{display:grid;grid-template-columns:minmax(190px,240px) 1fr;gap:22px;align-items:center;margin:16px 0}.qr-image{width:100%;aspect-ratio:1;background:#fff;border:1px solid #e6d9c7;border-radius:18px;padding:12px;box-shadow:0 10px 24px rgba(74,52,35,.08)}.qr-help{color:#7d7065;font-size:13px;line-height:1.7}.qr-help b{display:block;color:#392a21;font-size:16px;margin-bottom:4px}@media(max-width:620px){.qr-visual{grid-template-columns:1fr}.qr-image{max-width:250px;margin:auto}}
   </style>
-  <title>脆日炸雞｜店家管理</title>
+  <title>訂單系統｜店家管理</title>
 </head>
 <body>
   <main class="shell">
     <header class="app-header">
       <div class="brand-block">
-        <div class="eyebrow">CRISP DAY · STORE</div>
-        <h1 id="brandName">脆日炸雞</h1>
-        <div id="brandMeta" class="brand-meta">忠孝夜市 · 店家管理</div>
+        <div id="brandEn" class="eyebrow">ORDER SYSTEM · STORE</div>
+        <h1 id="brandName">店家</h1>
+        <div id="brandMeta" class="brand-meta">載入中…</div>
       </div>
       <div class="header-actions">
         <button id="installBtn" class="btn btn-yellow hidden">安裝 App</button>
-        <a id="customerLink" class="btn btn-ghost" href="./order.html?store=crisp-day" target="_blank" rel="noopener">顧客點餐</a>
+        <a id="customerLink" class="btn btn-ghost hidden" href="./order.html" target="_blank" rel="noopener">顧客點餐</a>
       </div>
     </header>
 
@@ -38,7 +38,7 @@
       <h2>登入店家管理 App</h2>
       <p class="muted">密碼只送往 Supabase 驗證，不寫在公開前端。</p>
       <div class="login-grid">
-        <label><span>店家代碼</span><input id="storeSlug" value="crisp-day" autocomplete="username"></label>
+        <label><span>店家代碼</span><input id="storeSlug" autocomplete="username" placeholder="輸入店家代碼"></label>
         <label><span>管理密碼</span><input id="passcode" type="password" inputmode="numeric" autocomplete="current-password" placeholder="6–12 位數字"></label>
       </div>
       <button id="loginBtn" class="btn btn-dark btn-wide">登入</button>

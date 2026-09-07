@@ -1,9 +1,8 @@
-window.CRISP_CONFIG = Object.freeze({
+window.ORDER_SYSTEM_CONFIG = Object.freeze({
   supabaseUrl: 'https://uuefhkqtslcdkdgeyiof.supabase.co',
   publishableKey: 'sb_publishable_v_Yzne9MJIj-9sjXYN-NDA_iA_u8wii',
-  defaultStore: 'crisp-day',
-  appName: '脆日炸雞',
-  appVersion: '2026.09.04.3'
+  appName: '訂單系統',
+  appVersion: '2026.09.07.p1-1'
 });
 
 // Shared formal-main visual layer. Loaded here so both store and customer pages get it.
