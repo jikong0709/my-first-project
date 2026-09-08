@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="./app.css">
   <link rel="stylesheet" href="./admin-branding.css">
   <style>
-    .qr-visual{display:grid;grid-template-columns:minmax(190px,240px) 1fr;gap:22px;align-items:center;margin:16px 0}.qr-image{width:100%;aspect-ratio:1;background:#fff;border:1px solid #e6d9c7;border-radius:18px;padding:12px;box-shadow:0 10px 24px rgba(74,52,35,.08)}.qr-help{color:#7d7065;font-size:13px;line-height:1.7}.qr-help b{display:block;color:#392a21;font-size:16px;margin-bottom:4px}@media(max-width:620px){.qr-visual{grid-template-columns:1fr}.qr-image{max-width:250px;margin:auto}}
+    .qr-visual{display:grid;grid-template-columns:minmax(190px,240px) 1fr;gap:22px;align-items:center;margin:16px 0}.qr-image{width:100%;aspect-ratio:1;background:#fff;border:1px solid #e6d9c7;border-radius:18px;padding:12px;box-shadow:0 10px 24px rgba(74,52,35,.08)}.qr-code{display:grid;place-items:center;overflow:hidden}.qr-code canvas{display:block;width:100%!important;height:auto!important;max-width:100%}.qr-help{color:#7d7065;font-size:13px;line-height:1.7}.qr-help b{display:block;color:#392a21;font-size:16px;margin-bottom:4px}@media(max-width:620px){.qr-visual{grid-template-columns:1fr}.qr-image{max-width:250px;margin:auto}}
   </style>
   <title>訂單系統｜店家管理</title>
 </head>
@@ -168,20 +168,27 @@
       <section id="pane-qr" class="pane hidden">
         <div class="toolbar"><div><div class="section-kicker">QR & LINK</div><h2>顧客點餐入口</h2></div></div>
         <section class="panel qr-panel">
-          <div class="qr-copy">固定點餐網址</div>
+          <div class="qr-copy">目前店家專屬點餐網址</div>
+          <div id="qrStoreName" class="section-title">店家</div>
           <div id="qrUrl" class="url-box"></div>
           <div class="qr-visual">
-            <img class="qr-image" src="./customer-qr.svg" alt="脆日炸雞顧客點餐 QR Code">
-            <div class="qr-help"><b>店面固定 QR Code</b>可印在桌牌、菜單、攤位立牌上。QR 直接指向正式 GitHub Pages 點餐網址，不使用 raw.githack 或 htmlpreview。</div>
+            <div id="qrCode" class="qr-image qr-code" role="img" aria-label="店家專屬點餐 QR Code"></div>
+            <div class="qr-help"><b>店家專屬 QR Code</b>QR 只包含此店的正式點餐網址。店名、Logo、Theme、電話或菜單變更都不需要更換 QR；公開網址由店家 slug 決定。</div>
           </div>
-          <div class="button-row"><button id="copyQrUrl" class="btn btn-dark">複製網址</button><a id="openQrUrl" class="btn btn-yellow" target="_blank" rel="noopener">開啟顧客頁</a><a class="btn btn-ghost" href="./customer-qr.svg" download="脆日炸雞_顧客點餐QR.svg">下載 QR</a></div>
+          <div class="button-row"><button id="copyQrUrl" class="btn btn-dark" disabled>複製網址</button><a id="openQrUrl" class="btn btn-yellow" target="_blank" rel="noopener" aria-disabled="true">開啟點餐頁</a><button id="downloadQr" class="btn btn-ghost" type="button" disabled>下載 QR</button></div>
         </section>
       </section>
     </div>
   </main>
 
   <script src="./config.js"></script>
+  <script src="./qr-vendor-core.js"></script>
+  <script src="./qr-vendor-rs.js"></script>
+  <script src="./qr-vendor-util.js"></script>
+  <script src="./qr-vendor-code.js"></script>
+  <script src="./qr-generator.js"></script>
   <script src="./admin.js"></script>
+  <script src="./admin-qr.js"></script>
   <script src="./admin-branding.js"></script>
   <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));}</script>
 </body>

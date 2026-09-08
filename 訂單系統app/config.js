@@ -1,8 +1,20 @@
+const ORDER_SYSTEM_CANONICAL_BASE_URL='https://jikong0709.github.io/my-first-project/order-app/';
 window.ORDER_SYSTEM_CONFIG = Object.freeze({
   supabaseUrl: 'https://uuefhkqtslcdkdgeyiof.supabase.co',
   publishableKey: 'sb_publishable_v_Yzne9MJIj-9sjXYN-NDA_iA_u8wii',
+  canonicalBaseUrl: ORDER_SYSTEM_CANONICAL_BASE_URL,
   appName: '訂單系統',
-  appVersion: '2026.09.07.p1-2a'
+  appVersion: '2026.09.08.p1-2c'
+});
+
+window.ORDER_SYSTEM_URLS=Object.freeze({
+  buildCustomerOrderUrl(slug){
+    const normalized=String(slug??'').trim();
+    if(!normalized)throw new Error('缺少店家 slug');
+    const url=new URL('order.html',ORDER_SYSTEM_CANONICAL_BASE_URL);
+    url.searchParams.set('store',normalized);
+    return url.href;
+  }
 });
 
 const ORDER_SYSTEM_THEME_KEYS = Object.freeze([
