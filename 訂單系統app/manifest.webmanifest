@@ -1,23 +1,20 @@
 {
-  "id": "./?store=crisp-day",
-  "name": "脆日炸雞｜店家管理",
-  "short_name": "脆日店家",
-  "description": "脆日炸雞 CRISP DAY 店家接單、收款、菜單與營業流水管理",
+  "id": "./",
+  "name": "訂單系統｜店家管理",
+  "short_name": "店家管理",
+  "description": "多店家訂單系統：接單、收款、菜單、營業流水與 QR 管理",
   "lang": "zh-Hant",
-  "start_url": "./?store=crisp-day",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui"],
   "orientation": "any",
-  "background_color": "#F7F0E6",
-  "theme_color": "#F5C842",
+  "background_color": "#F8FAFC",
+  "theme_color": "#2563EB",
   "icons": [
-    {"src":"./icon-192.png","sizes":"192x192","type":"image/png","purpose":"any"},
-    {"src":"./icon-512.png","sizes":"512x512","type":"image/png","purpose":"any"},
-    {"src":"./icon-maskable-512.png","sizes":"512x512","type":"image/png","purpose":"maskable"}
+    {"src":"./icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
   ],
   "shortcuts": [
-    {"name":"即時接單","short_name":"接單","url":"./?store=crisp-day"},
-    {"name":"顧客點餐","short_name":"點餐","url":"./order.html?store=crisp-day"}
+    {"name":"店家管理","short_name":"管理","url":"./"}
   ]
 }

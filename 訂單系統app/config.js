@@ -4,7 +4,7 @@ window.ORDER_SYSTEM_CONFIG = Object.freeze({
   publishableKey: 'sb_publishable_v_Yzne9MJIj-9sjXYN-NDA_iA_u8wii',
   canonicalBaseUrl: ORDER_SYSTEM_CANONICAL_BASE_URL,
   appName: '訂單系統',
-  appVersion: '2026.09.08.p1-2c'
+  appVersion: '2026.09.08.p1-2c-admin-tenant-fix1'
 });
 
 window.ORDER_SYSTEM_URLS=Object.freeze({
@@ -33,11 +33,14 @@ window.ORDER_SYSTEM_THEME=Object.freeze({
       if(valid)style.setProperty(key,value);
     }
     document.documentElement.dataset.theme=branding?.theme_key||'default';
+    const themeColor=String(vars['--brand-primary']||'').trim();
+    if(ORDER_SYSTEM_THEME_COLOR.test(themeColor))document.querySelector('meta[name="theme-color"]')?.setAttribute('content',themeColor);
   },
   reset(){
     const style=document.documentElement.style;
     for(const key of ORDER_SYSTEM_THEME_KEYS)style.removeProperty(key);
     document.documentElement.dataset.theme='default';
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content','#2563EB');
   }
 });
 
@@ -60,14 +63,62 @@ window.fetch=async(...args)=>{
   return response;
 };
 
+// Multi-tenant admin bootstrap. An explicit ?store= slug is authoritative for this page.
+// It must never fall back to the old crisp-day legacy session, and it is also remembered
+// so a generic installed PWA launched at ./ returns to the most recently selected store.
+const ORDER_SYSTEM_ADMIN_QUERY_STORE=(new URLSearchParams(location.search).get('store')||'').trim();
+const ORDER_SYSTEM_IS_ADMIN=!!document.querySelector('#loginGate');
+if(ORDER_SYSTEM_IS_ADMIN&&ORDER_SYSTEM_ADMIN_QUERY_STORE){
+  try{
+    localStorage.setItem('order-system.admin.last-store.v1',ORDER_SYSTEM_ADMIN_QUERY_STORE);
+    if(ORDER_SYSTEM_ADMIN_QUERY_STORE!=='crisp-day')localStorage.removeItem('crispday.store.session');
+  }catch{}
+}
+
+async function ORDER_SYSTEM_PREVIEW_ADMIN_TENANT(slug){
+  if(!ORDER_SYSTEM_IS_ADMIN||!slug)return;
+  try{
+    const r=await fetch(window.ORDER_SYSTEM_CONFIG.supabaseUrl+'/rest/v1/rpc/smallshop_public_store',{
+      method:'POST',
+      headers:{apikey:window.ORDER_SYSTEM_CONFIG.publishableKey,'Content-Type':'application/json'},
+      body:JSON.stringify({p_store_slug:slug})
+    });
+    if(!r.ok)return;
+    const data=await r.json(),resolved=data?.store||data;
+    if(!resolved?.store_id||resolved.slug!==slug)return;
+    if(resolved.branding)window.ORDER_SYSTEM_THEME.apply(resolved.branding);
+    const name=resolved.name||'店家',brandEn=resolved.brand_en||'STORE';
+    const brandName=document.querySelector('#brandName'),brandEnEl=document.querySelector('#brandEn'),brandMeta=document.querySelector('#brandMeta');
+    if(brandName)brandName.textContent=name;
+    if(brandEnEl)brandEnEl.textContent=brandEn+' · STORE';
+    if(brandMeta)brandMeta.textContent=(resolved.address?resolved.address+' · ':'')+'店家管理';
+    const slugInput=document.querySelector('#storeSlug');if(slugInput)slugInput.value=slug;
+    const customerLink=document.querySelector('#customerLink');
+    if(customerLink){customerLink.href=window.ORDER_SYSTEM_URLS.buildCustomerOrderUrl(slug);customerLink.classList.remove('hidden')}
+    document.title=name+'｜店家管理';
+    document.querySelector('meta[name="apple-mobile-web-app-title"]')?.setAttribute('content',name+'店家');
+  }catch{}
+}
+if(ORDER_SYSTEM_IS_ADMIN&&ORDER_SYSTEM_ADMIN_QUERY_STORE)ORDER_SYSTEM_PREVIEW_ADMIN_TENANT(ORDER_SYSTEM_ADMIN_QUERY_STORE);
+
+// Remove legacy Crisp-specific PWA presentation from the shared Core at runtime as well.
+if(ORDER_SYSTEM_IS_ADMIN){
+  document.querySelector('meta[name="apple-mobile-web-app-title"]')?.setAttribute('content','店家管理');
+  document.querySelector('link[rel="apple-touch-icon"]')?.setAttribute('href','./icon.svg');
+  const manifest=document.querySelector('link[rel="manifest"]');if(manifest)manifest.href='./manifest.webmanifest?v=20260908-tenant-1';
+}
+
 // Shared formal-main visual layer. Loaded here so both store and customer pages get it.
 (()=>{const link=document.createElement('link');link.rel='stylesheet';link.href='./enhancements.css?v=20260904-3';document.head.appendChild(link)})();
 
 addEventListener('DOMContentLoaded',()=>{
   if(!document.querySelector('#loginGate'))return;
   const loginGate=document.querySelector('#loginGate');
-  new MutationObserver(()=>{if(!loginGate.classList.contains('hidden'))window.ORDER_SYSTEM_THEME.reset()}).observe(loginGate,{attributes:true,attributeFilter:['class']});
-  if(!loginGate.classList.contains('hidden'))window.ORDER_SYSTEM_THEME.reset();
+  new MutationObserver(()=>{
+    if(!loginGate.classList.contains('hidden')&&!ORDER_SYSTEM_ADMIN_QUERY_STORE)window.ORDER_SYSTEM_THEME.reset()
+  }).observe(loginGate,{attributes:true,attributeFilter:['class']});
+  if(!loginGate.classList.contains('hidden')&&!ORDER_SYSTEM_ADMIN_QUERY_STORE)window.ORDER_SYSTEM_THEME.reset();
+  if(ORDER_SYSTEM_ADMIN_QUERY_STORE)ORDER_SYSTEM_PREVIEW_ADMIN_TENANT(ORDER_SYSTEM_ADMIN_QUERY_STORE);
   const setupButton=document.querySelector('#showSetupBtn'),setupBox=document.querySelector('#setupBox');
   if(setupButton)setupButton.classList.add('hidden');if(setupBox)setupBox.classList.add('hidden');
   if(!document.querySelector('#installHelpModal')){
