@@ -11,6 +11,7 @@
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="./icon-192.png">
   <link rel="stylesheet" href="./app.css">
+  <link rel="stylesheet" href="./admin-branding.css">
   <style>
     .qr-visual{display:grid;grid-template-columns:minmax(190px,240px) 1fr;gap:22px;align-items:center;margin:16px 0}.qr-image{width:100%;aspect-ratio:1;background:#fff;border:1px solid #e6d9c7;border-radius:18px;padding:12px;box-shadow:0 10px 24px rgba(74,52,35,.08)}.qr-help{color:#7d7065;font-size:13px;line-height:1.7}.qr-help b{display:block;color:#392a21;font-size:16px;margin-bottom:4px}@media(max-width:620px){.qr-visual{grid-template-columns:1fr}.qr-image{max-width:250px;margin:auto}}
   </style>
@@ -119,6 +120,41 @@
           </div>
           <button id="saveStoreBtn" class="btn btn-dark">儲存店家設定</button>
         </section>
+
+        <section class="panel branding-panel">
+          <div class="section-title">品牌設定</div>
+          <p class="muted">Theme 與品牌色只影響目前店家。切換模板或修改顏色會先在下方預覽，按「儲存品牌設定」後才正式更新。</p>
+          <div class="branding-layout">
+            <div class="branding-controls">
+              <div class="form-grid branding-form-grid">
+                <label class="span-2"><span>Logo URL</span><div class="branding-logo-input"><input id="brandLogoUrl" autocomplete="off" placeholder="https://example.com/logo.png"><button id="clearBrandLogo" type="button" class="btn btn-ghost">清除</button></div></label>
+                <label class="span-2"><span>Theme 模板</span><select id="brandTheme" aria-label="Theme 模板"></select></label>
+                <label><span>主色</span><input id="brandPrimary" autocomplete="off" maxlength="7" placeholder="#RRGGBB"></label>
+                <label><span>Accent 色</span><input id="brandAccent" autocomplete="off" maxlength="7" placeholder="#RRGGBB"></label>
+                <label><span>背景色</span><input id="brandBackground" autocomplete="off" maxlength="7" placeholder="#RRGGBB"></label>
+                <label><span>按鈕色</span><input id="brandButton" autocomplete="off" maxlength="7" placeholder="#RRGGBB"></label>
+              </div>
+              <div id="brandingValidation" class="branding-validation muted">顏色僅接受 #RRGGBB；留空時使用 Theme 模板預設值。</div>
+              <button id="saveBrandingBtn" class="btn btn-dark">儲存品牌設定</button>
+            </div>
+
+            <div class="branding-preview-wrap">
+              <div class="section-kicker">LIVE PREVIEW</div>
+              <div id="brandingPreview" class="branding-preview">
+                <div class="branding-preview-header">
+                  <img id="brandingPreviewLogo" class="branding-preview-logo hidden" alt="Logo 預覽">
+                  <div><small>STORE</small><b id="brandingPreviewName">店家</b></div>
+                </div>
+                <div class="branding-preview-product">
+                  <div><b>招牌商品</b><span>商品卡片預覽</span></div>
+                  <strong>NT$ 100</strong>
+                </div>
+                <button type="button" class="branding-preview-button">主按鈕</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <section class="panel">
           <div class="section-title">變更管理密碼</div>
           <div class="form-grid">
@@ -146,6 +182,7 @@
 
   <script src="./config.js"></script>
   <script src="./admin.js"></script>
+  <script src="./admin-branding.js"></script>
   <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));}</script>
 </body>
 </html>
