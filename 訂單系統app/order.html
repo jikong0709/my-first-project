@@ -42,24 +42,35 @@
       <div class="modal-head"><div><div class="section-kicker">YOUR CART</div><h2 id="cartTitle">購物車</h2></div><button class="modal-close" data-close="cartModal" aria-label="關閉">×</button></div>
       <div id="cartItems" class="cart-items"></div>
       <div class="cart-total-row"><span>商品總計</span><b id="cartModalTotal">NT$ 0</b></div>
-      <div class="modal-actions"><button id="continueShoppingBtn" class="btn btn-ghost">繼續點餐</button><button id="goCheckoutBtn" class="btn btn-yellow">前往結帳</button></div>
+      <div class="modal-actions"><button id="continueShoppingBtn" class="btn btn-ghost">繼續點餐</button><button id="goCheckoutBtn" class="btn btn-yellow">確認購買</button></div>
     </div>
   </div>
 
   <div id="checkoutModal" class="modal-layer hidden" role="dialog" aria-modal="true" aria-labelledby="checkoutTitle">
-    <div class="modal-card checkout-card">
-      <div class="modal-head"><div><div class="section-kicker">CHECKOUT</div><h2 id="checkoutTitle">確認訂購資料</h2></div><button class="modal-close" data-close="checkoutModal" aria-label="關閉">×</button></div>
-      <section class="checkout-section"><div class="section-title">訂購人資料</div><div class="form-grid customer-fields"><label><span>姓名 *</span><input id="customerName" maxlength="40" autocomplete="name" placeholder="請輸入姓名"></label><label><span>手機電話 *</span><input id="customerPhone" inputmode="tel" autocomplete="tel" maxlength="16" placeholder="09xx-xxx-xxx"></label></div><div id="contactError" class="field-error hidden"></div></section>
-      <section class="checkout-section"><div class="section-title">用餐方式</div><div class="dining-switch"><button class="dining-btn active" data-dining="外帶" type="button">外帶取餐</button><button class="dining-btn" data-dining="內用" type="button">店內用餐</button></div><label id="tableBox" class="table-box disabled"><span>桌號</span><input id="tableNo" disabled placeholder="選擇內用後填寫"><small id="tableHint">外帶免填桌號</small></label></section>
-      <section class="checkout-section"><div class="section-title">付款方式</div><div id="paymentOptions" class="payment-options"></div><div id="paymentNote" class="muted"></div></section>
+    <div class="modal-card checkout-card checkout-step-card">
+      <div class="modal-head"><div><div class="section-kicker">ORDER DETAILS</div><h2 id="checkoutTitle">訂購人資料</h2></div><button class="modal-close" data-close="checkoutModal" aria-label="關閉">×</button></div>
+      <section class="checkout-section">
+        <div class="form-grid customer-fields">
+          <label id="customerNameField"><span>姓名 *</span><input id="customerName" maxlength="40" autocomplete="name" placeholder="請輸入姓名" aria-describedby="customerNameError"><small id="customerNameError" class="field-error field-inline-error hidden" role="alert"></small></label>
+          <label id="customerPhoneField"><span>手機電話 *</span><input id="customerPhone" inputmode="tel" autocomplete="tel" maxlength="16" placeholder="09xx-xxx-xxx" aria-describedby="customerPhoneError"><small id="customerPhoneError" class="field-error field-inline-error hidden" role="alert"></small></label>
+        </div>
+      </section>
+      <section class="checkout-section"><div class="section-title">用餐方式</div><div class="dining-switch"><button class="dining-btn active" data-dining="外帶" type="button">外帶取餐</button><button class="dining-btn" data-dining="內用" type="button">店內用餐</button></div><label id="tableBox" class="table-box disabled"><span>桌號</span><input id="tableNo" disabled placeholder="選擇內用後填寫" aria-describedby="tableHint tableError"><small id="tableHint">外帶免填桌號</small></label><div id="tableError" class="field-error field-inline-error hidden" role="alert"></div></section>
       <section class="checkout-section"><label class="note-field"><span>訂單備註</span><textarea id="orderNote" maxlength="120" rows="2" placeholder="例如：胡椒多一點、不要辣"></textarea></label></section>
-      <div class="cart-total-row checkout-grand-total"><span>訂單合計</span><b id="checkoutTotal">NT$ 0</b></div>
-      <div class="modal-actions"><button id="backToCartBtn" class="btn btn-ghost">返回購物車</button><button id="reviewOrderBtn" class="btn btn-dark">確認購買</button></div>
+      <div class="modal-actions checkout-step-actions"><button id="backToCartBtn" class="btn btn-ghost">返回購物車</button><button id="goPaymentBtn" class="btn btn-dark">下一步：選擇付款</button></div>
+    </div>
+  </div>
+
+  <div id="paymentModal" class="modal-layer hidden" role="dialog" aria-modal="true" aria-labelledby="paymentTitle">
+    <div class="modal-card payment-card checkout-step-card">
+      <div class="modal-head"><div><div class="section-kicker">PAYMENT</div><h2 id="paymentTitle">付款方式</h2></div><button class="modal-close" data-close="paymentModal" aria-label="關閉">×</button></div>
+      <section class="checkout-section payment-step-section"><div id="paymentOptions" class="payment-options" tabindex="-1"></div><div id="paymentNote" class="payment-note muted"></div><div id="paymentError" class="field-error hidden" role="alert" aria-live="assertive"></div></section>
+      <div class="modal-actions checkout-step-actions"><button id="backToContactBtn" class="btn btn-ghost">返回訂購資料</button><button id="reviewOrderBtn" class="btn btn-dark">最後確認</button></div>
     </div>
   </div>
 
   <div id="confirmModal" class="modal-layer hidden" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
-    <div class="modal-card confirm-card"><div class="section-kicker">FINAL CHECK</div><h2 id="confirmTitle">最後確認</h2><p class="muted">請再次確認餐點與訂購資料，送出後即建立訂單。</p><div id="confirmSummary" class="confirm-summary"></div><div class="modal-actions"><button id="editCheckoutBtn" class="btn btn-ghost">返回修改</button><button id="submitOrder" class="btn btn-yellow">確定送出訂單</button></div></div>
+    <div class="modal-card confirm-card"><div class="section-kicker">FINAL CHECK</div><h2 id="confirmTitle">最後確認</h2><p class="muted">請再次確認餐點與訂購資料，送出後即建立訂單。</p><div id="confirmSummary" class="confirm-summary"></div><div id="submitError" class="field-error hidden" role="alert" aria-live="assertive"></div><div class="modal-actions"><button id="editCheckoutBtn" class="btn btn-ghost">返回付款方式</button><button id="submitOrder" class="btn btn-yellow">確定送出訂單</button></div></div>
   </div>
 
   <div id="successModal" class="modal-layer success-modal hidden" role="dialog" aria-modal="true" aria-labelledby="successTitle">

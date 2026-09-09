@@ -6,7 +6,7 @@ const money=n=>'NT$ '+Number(n||0).toLocaleString('zh-TW');
 const storeSlug=(new URLSearchParams(location.search).get('store')||'').trim();
 const HISTORY_PREFIX='order-system.customer.order_refs.v1:';
 const LEGACY_HISTORY_SUFFIX='.customer.order_refs.v2';
-let menu=[],store=null,tenantId='',historyKey='',cart=new Map(),dining='外帶',payment='現金',submitting=false,tracking=null,trackTimer=null,currentOrder=null;
+let menu=[],store=null,tenantId='',historyKey='',cart=new Map(),dining='外帶',payment='',submitting=false,tracking=null,trackTimer=null,currentOrder=null;
 
 async function rpc(name,body={}){
   const r=await fetch(RPC+name,{method:'POST',headers:{apikey:CFG.publishableKey,'Content-Type':'application/json'},body:JSON.stringify(body)});
@@ -77,21 +77,59 @@ $('#openCartBtn').onclick=()=>{renderCartModal();openModal('cartModal')};
 $('#continueShoppingBtn').onclick=()=>closeModal('cartModal');
 $('#cartItems').addEventListener('click',e=>{const q=e.target.closest('[data-cart-id]');if(q){changeQty(Number(q.dataset.cartId),Number(q.dataset.delta));return}const r=e.target.closest('[data-remove-id]');if(r){cart.delete(Number(r.dataset.removeId));const n=document.querySelector(`[data-qty="${r.dataset.removeId}"]`);if(n)n.textContent='0';renderCartBar();renderCartModal()}});
 
-function renderPayment(){
-  const opts=[];if(store?.cash_enabled)opts.push({v:'現金',label:'現金'});if(store?.linepay_enabled)opts.push({v:'LINE Pay',label:store.linepay_live?'LINE Pay':'LINE Pay（測試）'});
-  if(!opts.length){$('#paymentOptions').innerHTML='<div class="status bad">目前沒有可用付款方式</div>';payment='';return}
-  if(!opts.some(x=>x.v===payment))payment=opts[0].v;
-  $('#paymentOptions').innerHTML=opts.map(x=>`<button class="pay-btn${x.v===payment?' active':''}" data-pay="${x.v}" type="button">${x.label}</button>`).join('');
-  $('#paymentNote').textContent=!store.linepay_live&&store.linepay_enabled?'LINE Pay 尚未串接正式金流，送單後仍由店家確認收款。':'';
+function paymentLabel(value=payment){
+  if(value==='現金')return '現金支付';
+  if(value==='LINE Pay')return store?.linepay_live?'線上支付':'線上支付（測試）';
+  return value||'';
 }
-$('#paymentOptions').addEventListener('click',e=>{const b=e.target.closest('.pay-btn');if(!b)return;payment=b.dataset.pay;renderPayment()});
-$$('.dining-btn').forEach(b=>b.onclick=()=>{dining=b.dataset.dining;$$('.dining-btn').forEach(x=>x.classList.toggle('active',x===b));const inside=dining==='內用';$('#tableNo').disabled=!inside;$('#tableBox').classList.toggle('disabled',!inside);$('#tableNo').placeholder=inside?'例如：A3、12':'選擇內用後填寫';$('#tableHint').textContent=inside?'請填桌號':'外帶免填桌號';if(inside)setTimeout(()=>$('#tableNo').focus(),80);else $('#tableNo').value=''});
-$('#goCheckoutBtn').onclick=()=>{const c=cartState();if(!c.count)return;closeModal('cartModal');$('#checkoutTotal').textContent=money(c.total);renderPayment();openModal('checkoutModal')};
+function availablePaymentOptions(){
+  const opts=[];
+  if(store?.cash_enabled)opts.push({v:'現金',label:'現金支付'});
+  if(store?.linepay_enabled)opts.push({v:'LINE Pay',label:store.linepay_live?'線上支付':'線上支付（測試）'});
+  return opts;
+}
+function renderPayment(){
+  const opts=availablePaymentOptions();
+  if(payment&&!opts.some(x=>x.v===payment))payment='';
+  if(!opts.length){$('#paymentOptions').innerHTML='<div class="status bad">目前沒有可用付款方式</div>';payment='';$('#paymentNote').textContent='';return}
+  $('#paymentOptions').innerHTML=opts.map(x=>`<button class="pay-btn${x.v===payment?' active':''}" data-pay="${x.v}" type="button">${x.label}</button>`).join('');
+  $('#paymentNote').textContent=!store.linepay_live&&store.linepay_enabled?'目前尚未串接正式線上金流，送單後仍由店家確認收款。':'';
+}
+function clearPaymentError(){$('#paymentError').textContent='';$('#paymentError').classList.add('hidden')}
+function showPaymentError(msg){const box=$('#paymentError');box.textContent=msg;box.classList.remove('hidden');requestAnimationFrame(()=>{const first=$('#paymentOptions .pay-btn');(first||$('#paymentOptions')).focus?.({preventScroll:true});box.scrollIntoView({behavior:'smooth',block:'nearest'})})}
+$('#paymentOptions').addEventListener('click',e=>{const b=e.target.closest('.pay-btn');if(!b)return;payment=b.dataset.pay;clearPaymentError();renderPayment()});
+
+function clearFieldError(fieldId,errorId){const field=$('#'+fieldId),error=$('#'+errorId),input=field?.querySelector('input,textarea');field?.classList.remove('has-error');if(input)input.removeAttribute('aria-invalid');if(error){error.textContent='';error.classList.add('hidden')}}
+function setFieldError(fieldId,errorId,msg){const field=$('#'+fieldId),error=$('#'+errorId),input=field?.querySelector('input,textarea');field?.classList.add('has-error');if(input)input.setAttribute('aria-invalid','true');if(error){error.textContent=msg;error.classList.remove('hidden')}requestAnimationFrame(()=>{if(input){input.focus({preventScroll:true});input.scrollIntoView({behavior:'smooth',block:'center'})}else field?.scrollIntoView({behavior:'smooth',block:'center'})})}
+function clearContactErrors(){clearFieldError('customerNameField','customerNameError');clearFieldError('customerPhoneField','customerPhoneError');clearFieldError('tableBox','tableError')}
+$$('.dining-btn').forEach(b=>b.onclick=()=>{dining=b.dataset.dining;$$('.dining-btn').forEach(x=>x.classList.toggle('active',x===b));const inside=dining==='內用';$('#tableNo').disabled=!inside;$('#tableBox').classList.toggle('disabled',!inside);$('#tableNo').placeholder=inside?'例如：A3、12':'選擇內用後填寫';$('#tableHint').textContent=inside?'請填桌號':'外帶免填桌號';clearFieldError('tableBox','tableError');if(inside)setTimeout(()=>$('#tableNo').focus(),80);else $('#tableNo').value=''});
+$('#customerName').addEventListener('input',()=>clearFieldError('customerNameField','customerNameError'));
+$('#customerPhone').addEventListener('input',()=>clearFieldError('customerPhoneField','customerPhoneError'));
+$('#tableNo').addEventListener('input',()=>clearFieldError('tableBox','tableError'));
+$('#goCheckoutBtn').onclick=()=>{const c=cartState();if(!c.count)return;clearContactErrors();closeModal('cartModal');openModal('checkoutModal')};
 $('#backToCartBtn').onclick=()=>{closeModal('checkoutModal');renderCartModal();openModal('cartModal')};
 function checkoutData(){return{name:$('#customerName').value.trim(),phone:phoneDigits($('#customerPhone').value),table:$('#tableNo').value.trim(),note:$('#orderNote').value.trim(),dining,payment}}
-function validateCheckout(){const d=checkoutData();let msg='';if(!d.name)msg='請填寫訂購人姓名。';else if(!validPhone(d.phone))msg='手機電話請輸入 09 開頭共 10 碼。';else if(d.dining==='內用'&&!d.table)msg='內用請填寫桌號。';else if(!d.payment)msg='目前沒有可用付款方式。';$('#contactError').textContent=msg;$('#contactError').classList.toggle('hidden',!msg);return !msg}
-$('#reviewOrderBtn').onclick=()=>{if(!validateCheckout())return;const c=cartState(),d=checkoutData();$('#confirmSummary').innerHTML=`<div class="confirm-person"><b>${esc(d.name)}</b><span>${esc(formatPhone(d.phone))}</span></div><div class="confirm-meta">${esc(d.dining)}${d.table?' · 桌 '+esc(d.table):''} · ${esc(d.payment)}</div><div class="confirm-items">${c.items.map(i=>`<div><span>${esc(i.name)} × ${i.qty}</span><b>${money(i.subtotal)}</b></div>`).join('')}</div>${d.note?`<div class="confirm-note">備註：${esc(d.note)}</div>`:''}<div class="confirm-total"><span>合計</span><b>${money(c.total)}</b></div>`;closeModal('checkoutModal');openModal('confirmModal')};
-$('#editCheckoutBtn').onclick=()=>{closeModal('confirmModal');openModal('checkoutModal')};
+function validateContact(){
+  clearContactErrors();const d=checkoutData();
+  if(!d.name){setFieldError('customerNameField','customerNameError','請填寫訂購人姓名。');return false}
+  if(!validPhone(d.phone)){setFieldError('customerPhoneField','customerPhoneError','手機電話請輸入 09 開頭共 10 碼。');return false}
+  if(d.dining==='內用'&&!d.table){setFieldError('tableBox','tableError','內用請填寫桌號。');return false}
+  return true;
+}
+function validatePayment(){
+  clearPaymentError();const opts=availablePaymentOptions();
+  if(!opts.length){showPaymentError('目前沒有可用付款方式，請聯絡店家。');return false}
+  if(!payment||!opts.some(x=>x.v===payment)){showPaymentError('請先選擇付款方式。');return false}
+  return true;
+}
+$('#goPaymentBtn').onclick=()=>{if(!validateContact())return;renderPayment();clearPaymentError();closeModal('checkoutModal');openModal('paymentModal')};
+$('#backToContactBtn').onclick=()=>{closeModal('paymentModal');openModal('checkoutModal')};
+function renderConfirmSummary(){
+  const c=cartState(),d=checkoutData();
+  $('#confirmSummary').innerHTML=`<div class="confirm-detail-grid"><div><span>訂購人姓名</span><b>${esc(d.name)}</b></div><div><span>手機</span><b>${esc(formatPhone(d.phone))}</b></div><div><span>用餐方式</span><b>${esc(d.dining)}</b></div><div><span>桌號</span><b>${esc(d.dining==='內用'?(d.table||'—'):'—')}</b></div><div class="span-2"><span>付款方式</span><b>${esc(paymentLabel(d.payment))}</b></div></div><div class="confirm-section-label">餐點</div><div class="confirm-items">${c.items.map(i=>`<div class="confirm-item"><span><b>${esc(i.name)}</b><small>數量 ${i.qty}</small></span><b><small>小計</small>${money(i.subtotal)}</b></div>`).join('')}</div><div class="confirm-note"><b>訂單備註</b><span>${esc(d.note||'無')}</span></div><div class="confirm-total"><span>總金額</span><b>${money(c.total)}</b></div>`;
+}
+$('#reviewOrderBtn').onclick=()=>{if(!validatePayment())return;renderConfirmSummary();$('#submitError').textContent='';$('#submitError').classList.add('hidden');closeModal('paymentModal');openModal('confirmModal')};
+$('#editCheckoutBtn').onclick=()=>{closeModal('confirmModal');renderPayment();openModal('paymentModal')};
 
 function stopTracking(){if(trackTimer){clearInterval(trackTimer);trackTimer=null}}
 function renderStatus(o){
@@ -111,15 +149,18 @@ function startTracking(){stopTracking();refreshTracking();trackTimer=setInterval
 $('#refreshTrackBtn').onclick=()=>refreshTracking(true);
 
 $('#submitOrder').onclick=async()=>{
-  const c=cartState(),d=checkoutData();if(!c.count||!validateCheckout()||submitting)return;
+  const c=cartState();if(!c.count||submitting)return;
+  if(!validateContact()){closeModal('confirmModal');openModal('checkoutModal');return}
+  if(!validatePayment()){closeModal('confirmModal');openModal('paymentModal');return}
+  const d=checkoutData(),errorBox=$('#submitError');errorBox.textContent='';errorBox.classList.add('hidden');
   submitting=true;$('#submitOrder').disabled=true;$('#submitOrder').textContent='送出中…';
   try{
     const res=await rpc('smallshop_create_order',{p_store_slug:storeSlug,p_items:c.items.map(i=>({id:i.id,qty:i.qty})),p_customer_name:d.name,p_customer_phone:d.phone,p_dining_type:d.dining,p_payment_method:d.payment,p_note:d.note,p_table_no:d.table});
     const o=res.order;tracking={orderNo:o.order_no,publicToken:o.public_token};saveHistoryRef(o);renderOrderDetail(o,tracking);closeModal('confirmModal');openModal('successModal');startTracking();show('')
-  }catch(e){show(e.message||'送單失敗',true);closeModal('confirmModal');openModal('checkoutModal')}
+  }catch(e){errorBox.textContent=e.message||'送單失敗，請稍後再試。';errorBox.classList.remove('hidden');errorBox.scrollIntoView({behavior:'smooth',block:'nearest'})}
   finally{submitting=false;$('#submitOrder').disabled=false;$('#submitOrder').textContent='確定送出訂單'}
 };
-function resetOrdering(){stopTracking();tracking=null;currentOrder=null;cart.clear();$$('[data-qty]').forEach(x=>x.textContent='0');$('#orderNote').value='';$('#tableNo').value='';dining='外帶';$$('.dining-btn').forEach(x=>x.classList.toggle('active',x.dataset.dining==='外帶'));$('#tableNo').disabled=true;$('#tableBox').classList.add('disabled');$('#tableHint').textContent='外帶免填桌號';renderCartBar()}
+function resetOrdering(){stopTracking();tracking=null;currentOrder=null;cart.clear();$$('[data-qty]').forEach(x=>x.textContent='0');$('#orderNote').value='';$('#tableNo').value='';dining='外帶';payment='';$$('.dining-btn').forEach(x=>x.classList.toggle('active',x.dataset.dining==='外帶'));$('#tableNo').disabled=true;$('#tableBox').classList.add('disabled');$('#tableHint').textContent='外帶免填桌號';clearContactErrors();clearPaymentError();$('#submitError').textContent='';$('#submitError').classList.add('hidden');renderPayment();renderCartBar()}
 $('#newOrderBtn').onclick=()=>{closeModal('successModal');resetOrdering();scrollTo({top:0,behavior:'smooth'})};
 
 async function loadHistory(){
