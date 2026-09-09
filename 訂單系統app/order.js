@@ -5,7 +5,7 @@ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const money=n=>'NT$ '+Number(n||0).toLocaleString('zh-TW');
 const storeSlug=(new URLSearchParams(location.search).get('store')||'').trim();
 const HISTORY_PREFIX='order-system.customer.order_refs.v1:';
-const LEGACY_HISTORY_KEY='crispday.customer.order_refs.v2';
+const LEGACY_HISTORY_SUFFIX='.customer.order_refs.v2';
 let menu=[],store=null,tenantId='',historyKey='',cart=new Map(),dining='外帶',payment='現金',submitting=false,tracking=null,trackTimer=null,currentOrder=null;
 
 async function rpc(name,body={}){
@@ -29,12 +29,12 @@ function historyRefs(){
   if(!historyKey||!tenantId)return[];
   try{return (JSON.parse(localStorage.getItem(historyKey)||'[]')||[]).filter(x=>x&&x.storeId===tenantId&&x.orderNo&&x.publicToken)}catch{return[]}
 }
+function legacyHistoryKeys(){const keys=[];for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i)||'';if(key.endsWith(LEGACY_HISTORY_SUFFIX)&&key!==historyKey)keys.push(key)}return keys}
 function migrateLegacyHistory(){
   if(!historyKey||!tenantId||localStorage.getItem(historyKey)!==null)return;
   try{
-    const legacy=(JSON.parse(localStorage.getItem(LEGACY_HISTORY_KEY)||'[]')||[]).filter(x=>x&&x.storeSlug===storeSlug&&x.orderNo&&x.publicToken);
+    const legacy=[];for(const key of legacyHistoryKeys()){try{const rows=JSON.parse(localStorage.getItem(key)||'[]')||[];legacy.push(...rows.filter(x=>x&&x.storeSlug===storeSlug&&x.orderNo&&x.publicToken))}catch{}localStorage.removeItem(key)}
     if(legacy.length)localStorage.setItem(historyKey,JSON.stringify(legacy.map(x=>({storeId:tenantId,orderNo:x.orderNo,publicToken:x.publicToken,createdAt:x.createdAt||new Date().toISOString()}))));
-    localStorage.removeItem(LEGACY_HISTORY_KEY);
   }catch{}
 }
 function saveHistoryRef(order){const next=[{storeId:tenantId,orderNo:order.order_no,publicToken:order.public_token,createdAt:order.created_at||new Date().toISOString()},...historyRefs().filter(x=>x.orderNo!==order.order_no)].slice(0,50);localStorage.setItem(historyKey,JSON.stringify(next));updateHistoryBadge()}

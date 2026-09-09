@@ -4,7 +4,7 @@ window.ORDER_SYSTEM_CONFIG = Object.freeze({
   publishableKey: 'sb_publishable_v_Yzne9MJIj-9sjXYN-NDA_iA_u8wii',
   canonicalBaseUrl: ORDER_SYSTEM_CANONICAL_BASE_URL,
   appName: '訂單系統',
-  appVersion: '2026.09.08.p1-2c-admin-tenant-fix1'
+  appVersion: '2026.09.09.p1-2d-reconcile'
 });
 
 window.ORDER_SYSTEM_URLS=Object.freeze({
@@ -40,12 +40,10 @@ window.ORDER_SYSTEM_THEME=Object.freeze({
     const style=document.documentElement.style;
     for(const key of ORDER_SYSTEM_THEME_KEYS)style.removeProperty(key);
     document.documentElement.dataset.theme='default';
-    document.querySelector('meta[name="theme-color"]')?.setAttribute('content','#2563EB');
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content','#0F172A');
   }
 });
 
-// Generic Core theme is the pre-resolution authority. Tenant branding may only arrive
-// from the two resolver read models established by P1-1.
 window.ORDER_SYSTEM_THEME.reset();
 const ORDER_SYSTEM_NATIVE_FETCH=window.fetch.bind(window);
 window.fetch=async(...args)=>{
@@ -63,16 +61,10 @@ window.fetch=async(...args)=>{
   return response;
 };
 
-// Multi-tenant admin bootstrap. An explicit ?store= slug is authoritative for this page.
-// It must never fall back to the old crisp-day legacy session, and it is also remembered
-// so a generic installed PWA launched at ./ returns to the most recently selected store.
 const ORDER_SYSTEM_ADMIN_QUERY_STORE=(new URLSearchParams(location.search).get('store')||'').trim();
 const ORDER_SYSTEM_IS_ADMIN=!!document.querySelector('#loginGate');
 if(ORDER_SYSTEM_IS_ADMIN&&ORDER_SYSTEM_ADMIN_QUERY_STORE){
-  try{
-    localStorage.setItem('order-system.admin.last-store.v1',ORDER_SYSTEM_ADMIN_QUERY_STORE);
-    if(ORDER_SYSTEM_ADMIN_QUERY_STORE!=='crisp-day')localStorage.removeItem('crispday.store.session');
-  }catch{}
+  try{localStorage.setItem('order-system.admin.last-store.v1',ORDER_SYSTEM_ADMIN_QUERY_STORE)}catch{}
 }
 
 async function ORDER_SYSTEM_PREVIEW_ADMIN_TENANT(slug){
@@ -101,14 +93,12 @@ async function ORDER_SYSTEM_PREVIEW_ADMIN_TENANT(slug){
 }
 if(ORDER_SYSTEM_IS_ADMIN&&ORDER_SYSTEM_ADMIN_QUERY_STORE)ORDER_SYSTEM_PREVIEW_ADMIN_TENANT(ORDER_SYSTEM_ADMIN_QUERY_STORE);
 
-// Remove legacy Crisp-specific PWA presentation from the shared Core at runtime as well.
 if(ORDER_SYSTEM_IS_ADMIN){
-  document.querySelector('meta[name="apple-mobile-web-app-title"]')?.setAttribute('content','店家管理');
-  document.querySelector('link[rel="apple-touch-icon"]')?.setAttribute('href','./icon.svg');
-  const manifest=document.querySelector('link[rel="manifest"]');if(manifest)manifest.href='./manifest.webmanifest?v=20260908-tenant-1';
+  document.querySelector('meta[name="apple-mobile-web-app-title"]')?.setAttribute('content','訂單系統');
+  document.querySelector('link[rel="apple-touch-icon"]')?.setAttribute('href','./icon-192.png');
+  const manifest=document.querySelector('link[rel="manifest"]');if(manifest)manifest.href='./manifest.webmanifest?v=20260909-p1-2d';
 }
 
-// Shared formal-main visual layer. Loaded here so both store and customer pages get it.
 (()=>{const link=document.createElement('link');link.rel='stylesheet';link.href='./enhancements.css?v=20260904-3';document.head.appendChild(link)})();
 
 addEventListener('DOMContentLoaded',()=>{

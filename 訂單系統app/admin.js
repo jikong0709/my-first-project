@@ -2,15 +2,13 @@ const CFG=window.ORDER_SYSTEM_CONFIG;
 const RPC=CFG.supabaseUrl+'/rest/v1/rpc/';
 const ADMIN_SESSION_PREFIX='order-system.admin.session.v1:';
 const LAST_STORE_KEY='order-system.admin.last-store.v1';
-const LEGACY_SESSION_KEY='crispday.store.session';
+const LEGACY_SESSION_SUFFIX='.store.session';
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=n=>'NT$ '+Number(n||0).toLocaleString('zh-TW');
 const queryStoreSlug=(new URLSearchParams(location.search).get('store')||'').trim();
-const lastStoreSlug=(localStorage.getItem(LAST_STORE_KEY)||'').trim();
-let storeSlug=queryStoreSlug||lastStoreSlug;
-let token=storeSlug?(localStorage.getItem(ADMIN_SESSION_PREFIX+storeSlug)||''):'';
-if(!token)token=localStorage.getItem(LEGACY_SESSION_KEY)||'';
+let storeSlug=queryStoreSlug;
+let token='';
 let tenantId='',current='orders',timer=null,lastSig='',orders=[],lastLedger=null,store=null,deferredPrompt=null,interactionLock=false;
 
 async function rpc(name,body={}){const r=await fetch(RPC+name,{method:'POST',headers:{apikey:CFG.publishableKey,'Content-Type':'application/json'},body:JSON.stringify(body)});const text=await r.text();let data={};try{data=text?JSON.parse(text):{}}catch{data={message:text}}if(!r.ok)throw new Error(data.message||data.error||'連線失敗');return data}
@@ -19,12 +17,22 @@ function twDate(){return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Taipei'
 function fmt(v){return new Intl.DateTimeFormat('zh-TW',{timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(v))}
 function day(v){return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(v))}
 function sessionKey(slug){return slug?ADMIN_SESSION_PREFIX+slug:''}
+function legacySessionKeys(){const keys=[];for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i)||'';if(key.endsWith(LEGACY_SESSION_SUFFIX)&&!key.startsWith(ADMIN_SESSION_PREFIX))keys.push(key)}return keys}
+function sessionCandidates(){
+  const keys=[],seen=new Set(),add=key=>{if(key&&!seen.has(key)&&localStorage.getItem(key)){seen.add(key);keys.push(key)}};
+  if(queryStoreSlug)add(sessionKey(queryStoreSlug));
+  const pointer=(localStorage.getItem(LAST_STORE_KEY)||'').trim();if(pointer)add(sessionKey(pointer));
+  for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i)||'';if(key.startsWith(ADMIN_SESSION_PREFIX))add(key)}
+  legacySessionKeys().forEach(add);
+  return keys.map(key=>({key,token:localStorage.getItem(key)||''})).filter(x=>x.token);
+}
+function removeLegacySessions(){legacySessionKeys().forEach(key=>localStorage.removeItem(key))}
 function setSession(t,slug=storeSlug){
   token=t||'';
   const key=sessionKey(slug);
-  if(token&&key){localStorage.setItem(key,token);localStorage.setItem(LAST_STORE_KEY,slug);localStorage.removeItem(LEGACY_SESSION_KEY)}
+  if(token&&key){localStorage.setItem(key,token);localStorage.setItem(LAST_STORE_KEY,slug);removeLegacySessions()}
   else if(key)localStorage.removeItem(key);
-  if(!token)localStorage.removeItem(LEGACY_SESSION_KEY);
+  if(!token)removeLegacySessions();
 }
 function showGate(){clearInterval(timer);$('#loginGate').classList.remove('hidden');$('#app').classList.add('hidden');$('#customerLink').classList.add('hidden')}
 function showApp(){$('#loginGate').classList.add('hidden');$('#app').classList.remove('hidden')}
@@ -38,11 +46,15 @@ function applyStore(s){
   $('#setName').value=store.name||'';$('#setBrandEn').value=store.brand_en||'';$('#setPhone').value=store.phone||'';$('#setAddress').value=store.address||'';$('#setOpen').checked=!!store.business_open;$('#setCash').checked=!!store.cash_enabled;$('#setLine').checked=!!store.linepay_enabled;$('#lineModeNote').textContent=store.linepay_live?'LINE Pay 已啟用正式付款。':'目前為測試／人工確認模式。';refreshQr()
 }
 async function restore(){
-  if(storeSlug)$('#storeSlug').value=storeSlug;
-  if(!token){showGate();return}
-  try{
-    const resolved=await resolveSession(token,queryStoreSlug);store=resolved;storeSlug=resolved.slug;tenantId=resolved.store_id;setSession(token,storeSlug);$('#storeSlug').value=storeSlug;applyStore(store);showApp();await loadOrders();startPoll()
-  }catch(e){setSession('',storeSlug);tenantId='';store=null;showGate();status('登入已失效，請重新登入。',true)}
+  if(queryStoreSlug)$('#storeSlug').value=queryStoreSlug;
+  const candidates=sessionCandidates();
+  if(!candidates.length){showGate();return}
+  for(const candidate of candidates){
+    try{
+      const resolved=await resolveSession(candidate.token,queryStoreSlug);token=candidate.token;store=resolved;storeSlug=resolved.slug;tenantId=resolved.store_id;setSession(token,storeSlug);if(candidate.key!==sessionKey(storeSlug))localStorage.removeItem(candidate.key);$('#storeSlug').value=storeSlug;applyStore(store);showApp();await loadOrders();startPoll();return
+    }catch{localStorage.removeItem(candidate.key)}
+  }
+  token='';storeSlug=queryStoreSlug;tenantId='';store=null;showGate();status('登入已失效，請重新登入。',true)
 }
 
 $('#loginBtn').onclick=async()=>{const slug=$('#storeSlug').value.trim(),pass=$('#passcode').value.trim();if(!slug||!pass){status('請輸入店家代碼與管理密碼。',true);return}$('#loginBtn').disabled=true;let nextToken='';try{const d=await rpc('smallshop_admin_login',{p_store_slug:slug,p_passcode:pass});if(!d.ok){status(d.error||'登入失敗',true);return}nextToken=d.token;const resolved=await resolveSession(nextToken,slug);token=nextToken;storeSlug=resolved.slug;tenantId=resolved.store_id;store=resolved;setSession(token,storeSlug);status('');applyStore(store);showApp();await loadOrders();startPoll()}catch(e){if(nextToken)try{await rpc('smallshop_admin_logout',{p_token:nextToken})}catch{}status(e.message||'登入失敗',true)}finally{$('#loginBtn').disabled=false}}

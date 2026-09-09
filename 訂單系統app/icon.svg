@@ -1,11 +1,25 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="訂單系統">
-  <rect width="512" height="512" rx="116" fill="#2563EB"/>
-  <rect x="116" y="90" width="280" height="332" rx="42" fill="#FFFFFF"/>
-  <rect x="156" y="142" width="200" height="28" rx="14" fill="#2563EB"/>
-  <rect x="156" y="207" width="126" height="22" rx="11" fill="#94A3B8"/>
-  <rect x="156" y="257" width="200" height="22" rx="11" fill="#CBD5E1"/>
-  <rect x="156" y="307" width="154" height="22" rx="11" fill="#CBD5E1"/>
-  <circle cx="334" cy="218" r="30" fill="#0EA5E9"/>
-  <path d="M320 218l9 9 19-22" fill="none" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
-  <rect x="156" y="365" width="200" height="18" rx="9" fill="#E2E8F0"/>
+  <rect width="512" height="512" rx="112" fill="#0F172A"/>
+  <rect x="112" y="80" width="288" height="352" rx="52" fill="#FFFFFF"/>
+  <rect x="144" y="118" width="224" height="60" rx="20" fill="#2F65E9"/>
+  <g fill="#DBEAFE">
+    <rect x="152" y="218" width="36" height="36" rx="10"/>
+    <rect x="152" y="286" width="36" height="36" rx="10"/>
+    <rect x="152" y="354" width="36" height="36" rx="10"/>
+  </g>
+  <g fill="none" stroke="#2F65E9" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M160 235l8 8 15-18"/>
+    <path d="M160 303l8 8 15-18"/>
+    <path d="M160 371l8 8 15-18"/>
+  </g>
+  <g stroke="#0F172A" stroke-width="12" stroke-linecap="round">
+    <path d="M216 228h132"/>
+    <path d="M216 296h132"/>
+    <path d="M216 364h132"/>
+  </g>
+  <g stroke="#94A3B8" stroke-width="10" stroke-linecap="round">
+    <path d="M216 250h94"/>
+    <path d="M216 318h78"/>
+    <path d="M216 386h108"/>
+  </g>
 </svg>
