@@ -1,1 +1,1 @@
-{"product":"smallshop-b-core","version":"1.0.0","release_date":"2026-09-29","reference_tenant":"wanzai","features":["orders","menu","qr","store_open_close","password_change","customer_order_status","basic_branding","idempotent_order_create"]}
+{"product":"smallshop-b-core","version":"1.0.1","release_date":"2026-09-29","reference_tenant":"wanzai","features":["orders","menu","qr","store_open_close","password_change","customer_order_status","basic_branding","idempotent_order_create"],"notes":["hide empty contact fields","remember current store for PWA shortcut"]}
