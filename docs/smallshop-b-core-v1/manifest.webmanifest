@@ -1,0 +1,20 @@
+{
+  "name": "店家訂單管理",
+  "short_name": "訂單管理",
+  "description": "B Core 店家接單與菜單管理",
+  "lang": "zh-Hant",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F7F0E6",
+  "theme_color": "#6B4F3A",
+  "categories": ["business", "food", "productivity"],
+  "icons": [
+    {"src":"./icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any"}
+  ],
+  "shortcuts": [
+    {"name":"即時接單","short_name":"接單","url":"./"},
+    {"name":"客戶點餐頁","short_name":"點餐","url":"./order"}
+  ]
+}
